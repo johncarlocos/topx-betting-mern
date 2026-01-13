@@ -20,6 +20,7 @@ services:
     restart: unless-stopped
     environment:
       - ATLAS_URI=mongodb://root:example@mongodb:27017/betting-china?authSource=admin
+      - FETCHER=true
     networks:
       default:
         aliases:

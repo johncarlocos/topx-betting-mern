@@ -9,5 +9,4 @@ const CacheSchema = new Schema({
 
 const Cache = mongoose.model("Cache", CacheSchema);
 
-export { Cache };
-export default Cache;
+module.exports = { Cache };

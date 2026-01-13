@@ -176,7 +176,7 @@ async function updateHKMatches() {
       { key: "hkMatches" },
       {
         $set: {
-           matches,
+          data: matches,
           updatedAt: new Date()
         }
       },
