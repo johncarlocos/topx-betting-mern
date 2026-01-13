@@ -19,7 +19,7 @@ services:
     command: bun run backend/index.js
     restart: unless-stopped
     environment:
-      - ATLAS_URI=mongodb+srv://doadmin:Dz5i9o78B026W1cZ@dbaas-db-4179785-80978475.mongo.ondigitalocean.com/betting-china?authSource=admin
+      - ATLAS_URI=mongodb://root:example@mongodb:27017/betting-china?authSource=admin
     networks:
       default:
         aliases:

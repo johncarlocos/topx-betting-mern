@@ -39,7 +39,7 @@ connection.once("open", async () => {
   // Check if an admin user exists, and create one if not
   const existingAdmin = await Admin.findOne({ username: "admin" });
   if (!existingAdmin) {
-    const hashedPassword = await bcrypt.hash("aK8vxWKqw35inw==", 10);
+    const hashedPassword = await bcrypt.hash("adminpassword", 10);
     const newAdmin = new Admin({
       username: "admin",
       password: hashedPassword,
