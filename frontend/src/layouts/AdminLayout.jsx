@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import useAuthStore from "../store/authStore";
 import styles from "./AdminLayout.module.scss";
 import { useTranslation } from "react-i18next";
+import { api } from "../utils/api";
 import {
   AppBar,
   Box,
@@ -34,16 +35,52 @@ import { Divider } from "@mui/material";
 import i18n from "../i18n";
 
 const AdminLayout = ({ children }) => {
-  const { isAuthenticated, userRole, logout } = useAuthStore();
+  const { isAuthenticated, userRole, logout, login } = useAuthStore();
   const navigate = useNavigate();
   const location = useLocation();
   const { t } = useTranslation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [languageAnchorEl, setLanguageAnchorEl] = useState(null);
   const languageMenuOpen = Boolean(languageAnchorEl);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+
+  // Check authentication status on mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await api.get("/admin/check-auth");
+        if (response.status === 200 && response.data.role) {
+          // Session is valid, restore auth state
+          login(response.data.role);
+        }
+      } catch (error) {
+        // Session is invalid or missing
+        if (error.response?.status === 401 || error.response?.status === 404) {
+          logout();
+          const currentPath = location.pathname;
+          if (currentPath.startsWith("/admin")) {
+            navigate("/admin/login");
+          } else if (currentPath.startsWith("/subadmin")) {
+            navigate("/subadmin/login");
+          } else {
+            navigate("/login");
+          }
+        }
+      } finally {
+        setIsCheckingAuth(false);
+      }
+    };
+
+    // Only check if not already authenticated
+    if (!isAuthenticated) {
+      checkAuth();
+    } else {
+      setIsCheckingAuth(false);
+    }
+  }, [isAuthenticated, login, logout, navigate, location]);
 
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && !isCheckingAuth) {
       if (userRole === "sub" && location.pathname.startsWith("/admin")) {
         navigate("/subadmin");
       } else if (
@@ -52,7 +89,7 @@ const AdminLayout = ({ children }) => {
         navigate("/admin");
       }
     }
-  }, [isAuthenticated, userRole, location, navigate]);
+  }, [isAuthenticated, userRole, location, navigate, isCheckingAuth]);
 
   const handleLogout = () => {
     logout();
@@ -82,8 +119,28 @@ const AdminLayout = ({ children }) => {
     setLanguageAnchorEl(null);
   };
 
+  // Redirect if not authenticated after checking
+  useEffect(() => {
+    if (!isCheckingAuth && (!isAuthenticated || userRole === "member")) {
+      const currentPath = location.pathname;
+      if (currentPath.startsWith("/admin")) {
+        navigate("/admin/login", { replace: true });
+      } else if (currentPath.startsWith("/subadmin")) {
+        navigate("/subadmin/login", { replace: true });
+      } else {
+        navigate("/login", { replace: true });
+      }
+    }
+  }, [isCheckingAuth, isAuthenticated, userRole, location, navigate]);
+
+  // Show loading or nothing while checking auth
+  if (isCheckingAuth) {
+    return null; // or a loading spinner
+  }
+
+  // Don't render if not authenticated (redirect will happen)
   if (!isAuthenticated || userRole === "member") {
-    return navigate("/login");
+    return null;
   }
 
   const handleDrawerLinkClick = () => {

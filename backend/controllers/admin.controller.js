@@ -99,6 +99,46 @@ class AdminController {
   }
 
   /**
+   * Checks if an admin is authenticated.
+   * @param {object} req - The request object.
+   * @param {object} res - The response object.
+   * @returns {Promise<void>}
+   * @static
+   * @async
+   */
+  static async checkAuth(req, res) {
+    try {
+      const sessionId = req.cookies?.sessionId;
+
+      if (!sessionId) {
+        return res.status(401).json({ message: "No session ID provided" });
+      }
+
+      const session = await SessionService.validateSession(sessionId);
+
+      if (!session) {
+        return res.status(401).json({ message: "Invalid session" });
+      }
+
+      const admin = await Admin.findById(session.userId);
+
+      if (!admin) {
+        return res.status(404).json({ message: "Admin not found" });
+      }
+
+      res.status(200).json({
+        message: "Admin is authenticated",
+        role: admin.role,
+      });
+    } catch (error) {
+      res.status(500).json({
+        message: "Error checking authentication",
+        error: error.message,
+      });
+    }
+  }
+
+  /**
    * Registers a new sub-admin.
    * @param {object} req - The request object.
    * @param {object} res - The response object.
