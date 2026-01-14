@@ -76,12 +76,13 @@ connection.once("open", async () => {
     
     // Trigger initial cache update if fetcher is enabled
     if (process.env.FETCHER) {
-      // Wait a bit for everything to be ready, then run initial cache update
-      setTimeout(async () => {
+      // Run initial cache update immediately after MongoDB is ready
+      // Use setImmediate to ensure it runs after the current execution context
+      setImmediate(async () => {
         console.log("Running initial cache update after MongoDB connection...");
         try {
           const MatchService = require("./services/match.service");
-          const Cache = require("./models/cache.model");
+          const { Cache } = require("./models/cache.model");
           const { updateHKMatches } = require("./getAPIFixtureId");
           
           const data = await MatchService.getMatchData();
@@ -93,12 +94,16 @@ connection.once("open", async () => {
               { upsert: true, new: true },
             );
             console.log("Initial cache populated with", data.length, "matches");
+          } else {
+            console.warn("Initial cache update: No matches found");
           }
           await updateHKMatches();
+          console.log("Initial cache update completed");
         } catch (err) {
           console.error("Error during initial cache update:", err);
+          console.error("Error stack:", err.stack);
         }
-      }, 5000);
+      });
     }
   } catch (err) {
     console.error("Error during database initialization:", err);
@@ -134,7 +139,7 @@ app.use(async (err, req, res, next) => {
 });
 
 const MatchService = require("./services/match.service");
-const Cache = require("./models/cache.model");
+const { Cache } = require("./models/cache.model");
 const { updateHKMatches } = require("./getAPIFixtureId");
 
 // Update cached match data every 60 seconds
