@@ -90,8 +90,16 @@ class MatchService {
     }));
     console.timeEnd("matchDatasProcessing"); // End timing match data processing
 
+    // Filter out past matches (matches where kickOffTime has passed)
+    const now = new Date();
+    const filteredMatchDatas = matchDatas.filter((match) => {
+      if (!match.time) return false;
+      const kickOffTime = new Date(match.time);
+      return kickOffTime >= now;
+    });
+
     console.timeEnd("getMatchData"); // End timing 전체 getMatchData 함수
-    return matchDatas;
+    return filteredMatchDatas;
   }
 
   /**

@@ -18,7 +18,14 @@ class MatchController {
     try {
       const cache = await Cache.findOne({ key: "matchData" });
       if (cache && cache.data) {
-        res.json(cache.data);
+        // Filter out past matches as a safety measure
+        const now = new Date();
+        const filteredData = cache.data.filter((match) => {
+          if (!match.time) return false;
+          const kickOffTime = new Date(match.time);
+          return kickOffTime >= now;
+        });
+        res.json(filteredData);
       } else {
         res.json([]);
       }
