@@ -18,7 +18,12 @@ require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 5000;
 
-app.use(cors());
+app.use(cors({
+  origin: process.env.NODE_ENV === "production" 
+    ? ["https://topxhk.ai", "https://www.topxhk.ai"]
+    : true,
+  credentials: true,
+}));
 app.use(express.json());
 app.use(cookieParser()); // Add cookie parsing middleware
 
