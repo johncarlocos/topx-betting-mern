@@ -35,3 +35,6 @@ mongodb:
 # networks
 networks:
   app-network:
+
+volumes:
+  mongodb_data:
