@@ -173,10 +173,52 @@ docker-compose -f docker-compose.prod.yml exec mongodb mongodump --out /backup
 
 ## Troubleshooting
 
+### MongoDB Connection Issues
+
+If you see `MongooseServerSelectionError: Failed to connect` errors:
+
+1. **Verify MongoDB is accessible from the server:**
+   ```bash
+   # Test connection from the server
+   telnet 145.79.13.57 27017
+   # Or use nc (netcat)
+   nc -zv 145.79.13.57 27017
+   ```
+
+2. **Check MongoDB firewall rules:**
+   - Ensure MongoDB server allows connections from your Docker host IP
+   - For MongoDB Atlas: Add your server's IP to the IP whitelist
+   - For self-hosted MongoDB: Check firewall rules (iptables/ufw)
+
+3. **Verify MongoDB credentials:**
+   ```bash
+   # Test connection manually
+   mongosh "mongodb://root:Azsxdcfv123@145.79.13.57:27017/betting-china?authSource=admin"
+   ```
+
+4. **Check MongoDB server status:**
+   - Ensure MongoDB service is running on the remote server
+   - Check MongoDB logs on the remote server
+
+5. **Network connectivity from Docker:**
+   ```bash
+   # Test from inside the container
+   docker-compose -f docker-compose.prod.yml exec backend sh
+   # Inside container:
+   nc -zv 145.79.13.57 27017
+   ```
+
+6. **Common fixes:**
+   - If using MongoDB Atlas: Ensure your server IP is whitelisted
+   - If using self-hosted: Check `bindIp` in MongoDB config (should allow external connections)
+   - Verify the connection string format in `.env` file
+   - Check if MongoDB requires SSL/TLS connections
+
 ### API not accessible
 - Check if backend container is running: `docker-compose -f docker-compose.prod.yml ps`
 - Check backend logs: `docker-compose -f docker-compose.prod.yml logs backend`
 - Verify MongoDB connection string in `.env`
+- Ensure backend container can reach MongoDB (see MongoDB troubleshooting above)
 
 ### SSL certificate issues
 - Verify certificates exist: `ls -la /etc/letsencrypt/live/topxhk.ai/`
@@ -184,9 +226,17 @@ docker-compose -f docker-compose.prod.yml exec mongodb mongodump --out /backup
 - Ensure port 443 is open in firewall
 
 ### Frontend not loading
-- Verify frontend is built: Check `frontend/build` directory exists
-- Check nginx logs: `docker-compose -f docker-compose.prod.yml logs nginx`
-- Verify nginx volume mount in docker-compose.prod.yml
+- **CRITICAL**: Build frontend before deployment:
+  ```bash
+  cd frontend
+  npm install
+  npm run build
+  cd ..
+  ```
+- Verify frontend is built: Check `frontend/build` directory exists and contains `index.html`
+- Check backend logs for ENOENT errors: `docker-compose -f docker-compose.prod.yml logs backend`
+- Verify frontend build volume mount in docker-compose.prod.yml
+- If using nginx: Check nginx logs: `docker-compose -f docker-compose.prod.yml logs nginx`
 
 ## Support
 

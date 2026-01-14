@@ -24,32 +24,57 @@ app.use(cookieParser()); // Add cookie parsing middleware
 
 const uri = process.env.ATLAS_URI ||
   "mongodb://root:example@localhost:27017/betting-china?authSource=admin";
-console.log("Connecting to MongoDB database...", uri);
-mongoose.connect(uri);
+console.log("Connecting to MongoDB database...", uri.replace(/\/\/[^:]+:[^@]+@/, "//***:***@")); // Hide password in logs
+
+// MongoDB connection options
+const mongooseOptions = {
+  serverSelectionTimeoutMS: 10000, // Timeout after 10s instead of 30s
+  socketTimeoutMS: 45000, // Close sockets after 45s of inactivity
+  connectTimeoutMS: 10000,
+  retryWrites: true,
+  retryReads: true,
+};
+
+mongoose.connect(uri, mongooseOptions);
 const connection = mongoose.connection;
+
+// Handle connection errors
+connection.on("error", (err) => {
+  console.error("MongoDB connection error:", err.message);
+  console.error("Full error:", err);
+});
+
+connection.on("disconnected", () => {
+  console.warn("MongoDB disconnected. Attempting to reconnect...");
+});
+
 connection.once("open", async () => {
   console.log("MongoDB database connection established successfully");
 
-  // Create TTL index for cache expiration
-  await mongoose.connection.db.collection("matches").createIndex(
-    { "cachedData.expiresAt": 1 },
-    { expireAfterSeconds: 0 },
-  );
+  try {
+    // Create TTL index for cache expiration
+    await mongoose.connection.db.collection("matches").createIndex(
+      { "cachedData.expiresAt": 1 },
+      { expireAfterSeconds: 0 },
+    );
 
-  // Check if an admin user exists, and create one if not
-  const existingAdmin = await Admin.findOne({ username: "admin" });
-  if (!existingAdmin) {
-    const hashedPassword = await bcrypt.hash("adminpassword", 10);
-    const newAdmin = new Admin({
-      username: "admin",
-      password: hashedPassword,
-      role: "main",
-    });
-    await newAdmin.save();
-    await TelemetryService.log("info", "Default admin user created.");
-    console.log("Default admin user created.");
-  } else {
-    console.log("Default admin user already exists.");
+    // Check if an admin user exists, and create one if not
+    const existingAdmin = await Admin.findOne({ username: "admin" });
+    if (!existingAdmin) {
+      const hashedPassword = await bcrypt.hash("adminpassword", 10);
+      const newAdmin = new Admin({
+        username: "admin",
+        password: hashedPassword,
+        role: "main",
+      });
+      await newAdmin.save();
+      await TelemetryService.log("info", "Default admin user created.");
+      console.log("Default admin user created.");
+    } else {
+      console.log("Default admin user already exists.");
+    }
+  } catch (err) {
+    console.error("Error during database initialization:", err);
   }
 });
 
