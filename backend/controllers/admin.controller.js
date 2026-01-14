@@ -48,7 +48,8 @@ class AdminController {
       res.cookie("sessionId", sessionId, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
+        sameSite: process.env.NODE_ENV === "production" ? "lax" : "strict",
+        path: "/",
       });
 
       res.status(200).json({
@@ -84,7 +85,8 @@ class AdminController {
       res.clearCookie("sessionId", {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
+        sameSite: process.env.NODE_ENV === "production" ? "lax" : "strict",
+        path: "/",
       });
 
       res.status(200).json({ message: "Admin logout successful" });

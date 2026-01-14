@@ -7,21 +7,11 @@ const api = axios.create({
   headers: {
     "Content-Type": "application/json",
   },
+  withCredentials: true,
 });
 
-// Add a request interceptor to include the session cookie
-api.interceptors.request.use(
-  (config) => {
-    const sessionId = Cookies.get("sessionId");
-    if (sessionId) {
-      config.headers.Cookie = `sessionId=${sessionId}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  },
-);
+// Note: Cookies are automatically sent with withCredentials: true
+// No need to manually set Cookie header
 
 // Function to handle navigation
 const handleNavigation = (navigate, userRole) => {
