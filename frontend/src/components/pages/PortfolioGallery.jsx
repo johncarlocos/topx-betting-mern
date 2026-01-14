@@ -8,19 +8,19 @@ const PortfolioContent = (t) => [
   {
     img: "image1",
     tag: t("社群分享"),
-    link: "https://t.me/topxrecords",
+    link: "https://t.me/topxhk_ai",
     plus: "bi bi-plus",
   },
   {
     img: "image2",
     tag: t("動態更新"),
-    link: "https://www.instagram.com/topxhk_ai/",
+    link: "https://www.instagram.com/topxhk.ai/",
     plus: "bi bi-plus",
   },
   {
     img: "image3",
     tag: t("分析紀錄"),
-    link: "https://www.threads.net/@topxhk_ai",
+    link: "https://www.threads.com/@topxhk.ai",
     plus: "bi bi-plus",
   },
 ];

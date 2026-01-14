@@ -27,7 +27,7 @@ const HeroBanner = () => {
               <ul className="style-none button-group d-flex align-items-center">
                 <li className="me-4">
                   <a
-                    href="https://t.me/Systemtopxpro"
+                    href="https://t.me/topxhk_ai"
                     target="_blank"
                     className="demo-btn ripple-btn tran3s"
                   >

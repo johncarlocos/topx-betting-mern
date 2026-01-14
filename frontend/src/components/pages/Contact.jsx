@@ -26,7 +26,7 @@ const Contact = () => {
                   )}
                 </p>
                 <a
-                  href="https://t.me/Systemtopxpro"
+                  href="https://t.me/topxhk_ai"
                   target="_blank"
                   className="btn-eight ripple-btn"
                 >
