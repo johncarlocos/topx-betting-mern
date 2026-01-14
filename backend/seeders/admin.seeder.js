@@ -18,6 +18,11 @@ async function seedAdmins() {
         role: "main",
       },
       {
+        username: "Admin02",
+        password: "60160849",
+        role: "main",
+      },
+      {
         username: "subadmin1",
         password: "subadmin1password",
         role: "sub",
