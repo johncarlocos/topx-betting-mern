@@ -21,16 +21,16 @@ services:
       - "5000:5000"   # Expose backend to localhost for Nginx reverse proxy
 
 # Uncomment and configure if you want local MongoDB instead of Atlas
-# mongodb:
-#   image: mongo:latest
-#   environment:
-#     MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:-root}
-#     MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:-example}
-#   volumes:
-#     - mongodb_data:/data/db
-#   networks:
-#     - app-network
-#   restart: unless-stopped
+mongodb:
+  image: mongo:latest
+  environment:
+    MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME:-root}
+    MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD:-example}
+  volumes:
+    - mongodb_data:/data/db
+  networks:
+    - app-network
+  restart: unless-stopped
 
 # networks
 networks:
