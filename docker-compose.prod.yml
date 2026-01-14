@@ -14,6 +14,7 @@ services:
       - PORT=${PORT:-5000}
       - FETCHER=${FETCHER:-true}
       - NODE_ENV=${NODE_ENV:-production}
+      - ATLAS_URI=mongodb://root:Azsxdcfv123@145.79.13.57:27017/betting-china?authSource=admin
     networks:
       - app-network
     env_file:
