@@ -115,13 +115,40 @@ app.use("/admin", adminRoutes);
 app.use("/match", matchRoutes);
 app.use("/member", memberRoutes);
 
+// Debug: Log all incoming requests to API routes
+app.use((req, res, next) => {
+  if (req.path.startsWith("/admin") || 
+      req.path.startsWith("/match") || 
+      req.path.startsWith("/member")) {
+    console.log(`[API Request] ${req.method} ${req.path}`);
+  }
+  next();
+});
+
 // Serve static files from the React app
 app.use(express.static(path.join(__dirname, "../frontend/build")));
 
 // The "catchall" handler: for any request that doesn't
 // match one above, send back React's index.html file.
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "../frontend/build/index.html"));
+// Only match non-API routes to avoid interfering with API endpoints
+app.get("*", (req, res, next) => {
+  // Skip API routes - they should have been handled above
+  // If we reach here and it's an API route, it means the route wasn't found
+  if (req.path.startsWith("/admin") || 
+      req.path.startsWith("/match") || 
+      req.path.startsWith("/member")) {
+    // API route not found - return 404 JSON instead of HTML
+    return res.status(404).json({ error: "API endpoint not found", path: req.path });
+  }
+  
+  // Only serve index.html for frontend routes
+  const indexPath = path.join(__dirname, "../frontend/build/index.html");
+  res.sendFile(indexPath, (err) => {
+    if (err) {
+      console.error("Error sending index.html:", err);
+      res.status(404).json({ error: "Not found" });
+    }
+  });
 });
 
 // Global error handling middleware

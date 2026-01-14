@@ -134,30 +134,48 @@ class MemberController {
       const sessionId = req.cookies?.sessionId;
 
       if (!sessionId) {
-        return res.status(401).json({ message: "No session ID provided" });
+        return res.status(401).json({ 
+          message: "No session ID provided",
+          code: "NO_SESSION" 
+        });
       }
 
       const session = await SessionService.validateSession(sessionId);
 
       if (!session) {
-        return res.status(401).json({ message: "Invalid session" });
+        return res.status(401).json({ 
+          message: "Invalid session",
+          code: "INVALID_SESSION" 
+        });
       }
 
       const member = await Member.findById(session.userId);
 
       if (!member) {
-        return res.status(404).json({ message: "Member not found" });
+        // Return 401 instead of 404 for authentication failures
+        return res.status(401).json({ 
+          message: "Member not found",
+          code: "MEMBER_NOT_FOUND" 
+        });
       }
 
       if (member.blocked) {
-        return res.status(403).json({ message: "Member is blocked" });
+        return res.status(403).json({ 
+          message: "Member is blocked",
+          code: "MEMBER_BLOCKED" 
+        });
       }
 
-      res.status(200).json({ message: "Member is authenticated" });
+      res.status(200).json({ 
+        message: "Member is authenticated",
+        authenticated: true 
+      });
     } catch (error) {
+      console.error("Error in checkAuth:", error);
       res.status(500).json({
         message: "Error checking authentication",
         error: error.message,
+        code: "INTERNAL_ERROR"
       });
     }
   }
