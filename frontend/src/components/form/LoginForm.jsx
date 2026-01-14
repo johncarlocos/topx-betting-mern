@@ -105,7 +105,7 @@ const LoginForm = () => {
             <button className="btn-eight ripple-btn">{t("提交")}</button>
             <a
               className="register-button"
-              href="https://t.me/topxhk_ai"
+              href="https://t.me/topxhkai"
               target="_blank"
               rel="noreferrer"
             >
