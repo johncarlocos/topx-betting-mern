@@ -25,13 +25,27 @@ class MatchController {
           const kickOffTime = new Date(match.time);
           return kickOffTime >= now;
         });
+        // Set cache headers to prevent stale 304 responses
+        res.set({
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        });
         res.json(filteredData);
       } else {
+        console.log("No cache found or cache data is empty. Cache:", cache ? "exists but no data" : "does not exist");
+        // Set cache headers
+        res.set({
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        });
         res.json([]);
       }
     } catch (error) {
       console.error("Error fetching match data:", error.message);
-      res.status(500).json({ error: "Error fetching match data" });
+      console.error("Full error:", error);
+      res.status(500).json({ error: "Error fetching match data", details: error.message });
     }
   }
 

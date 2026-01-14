@@ -73,6 +73,33 @@ connection.once("open", async () => {
     } else {
       console.log("Default admin user already exists.");
     }
+    
+    // Trigger initial cache update if fetcher is enabled
+    if (process.env.FETCHER) {
+      // Wait a bit for everything to be ready, then run initial cache update
+      setTimeout(async () => {
+        console.log("Running initial cache update after MongoDB connection...");
+        try {
+          const MatchService = require("./services/match.service");
+          const Cache = require("./models/cache.model");
+          const { updateHKMatches } = require("./getAPIFixtureId");
+          
+          const data = await MatchService.getMatchData();
+          console.log(`Initial fetch: ${data.length} matches`);
+          if (data.length > 0) {
+            await Cache.findOneAndUpdate(
+              { key: "matchData" },
+              { data, updatedAt: new Date() },
+              { upsert: true, new: true },
+            );
+            console.log("Initial cache populated with", data.length, "matches");
+          }
+          await updateHKMatches();
+        } catch (err) {
+          console.error("Error during initial cache update:", err);
+        }
+      }, 5000);
+    }
   } catch (err) {
     console.error("Error during database initialization:", err);
   }
@@ -116,15 +143,20 @@ if (process.env.FETCHER) {
     try {
       console.log("Updating cached match data...");
       const data = await MatchService.getMatchData();
+      console.log(`Fetched ${data.length} matches`);
       if (data.length > 0) {
         await Cache.findOneAndUpdate(
           { key: "matchData" },
           { data, updatedAt: new Date() },
           { upsert: true, new: true },
         );
+        console.log("Cache updated successfully with", data.length, "matches");
+      } else {
+        console.warn("No match data to cache - data array is empty");
       }
     } catch (err) {
       console.error("Error updating cached match data:", err);
+      console.error("Error stack:", err.stack);
     }
   };
 
