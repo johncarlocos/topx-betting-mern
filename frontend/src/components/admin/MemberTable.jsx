@@ -112,30 +112,47 @@ const MemberTable = ({
       baseColumns.push({
         header: t("操作"),
         cell: (props) => (
-          <Box sx={{ display: "flex", gap: 1 }}>
-            
+          <Box sx={{ display: "flex", gap: { xs: 0.5, sm: 1 }, flexWrap: "wrap" }}>
             <Tooltip title={t("編輯")}>
               <IconButton
                 aria-label="edit"
                 onClick={() => handleEditCredentialOpen(props.row.original)}
+                sx={{
+                  padding: { xs: "6px", sm: "8px" },
+                  "&:hover": {
+                    backgroundColor: "rgba(50, 205, 50, 0.2)",
+                  },
+                }}
               >
-                <EditIcon sx={{ fontSize: "1rem" }} />
+                <EditIcon sx={{ fontSize: { xs: "18px", sm: "20px" } }} />
               </IconButton>
             </Tooltip>
-            <Tooltip title={t("編輯")}>
+            <Tooltip title={t("編輯價格")}>
               <IconButton
-                aria-label="edit"
+                aria-label="edit-price"
                 onClick={() => handleEditPriceOpen(props.row.original)}
+                sx={{
+                  padding: { xs: "6px", sm: "8px" },
+                  "&:hover": {
+                    backgroundColor: "rgba(50, 205, 50, 0.2)",
+                  },
+                }}
               >
-                <AttachMoneyIcon sx={{ fontSize: "1rem" }} />
+                <AttachMoneyIcon sx={{ fontSize: { xs: "18px", sm: "20px" } }} />
               </IconButton>
             </Tooltip>
             <Tooltip title={t("刪除")}>
               <IconButton
                 aria-label="delete"
                 onClick={() => handleDeleteMemberOpen(props.row.original)}
+                sx={{
+                  padding: { xs: "6px", sm: "8px" },
+                  "&:hover": {
+                    backgroundColor: "rgba(255, 71, 87, 0.2)",
+                  },
+                }}
               >
-                <DeleteIcon sx={{ fontSize: "1rem" }} />
+                <DeleteIcon sx={{ fontSize: { xs: "18px", sm: "20px" } }} />
               </IconButton>
             </Tooltip>
             <Tooltip
@@ -149,23 +166,37 @@ const MemberTable = ({
                   props.row.original.blocked
                     ? handleUnblockMember(props.row.original._id)
                     : handleBlockMember(props.row.original._id)}
+                sx={{
+                  padding: { xs: "6px", sm: "8px" },
+                  "&:hover": {
+                    backgroundColor: props.row.original.blocked 
+                      ? "rgba(76, 175, 80, 0.2)"
+                      : "rgba(244, 67, 54, 0.2)",
+                  },
+                }}
               >
                 {props.row.original.blocked
                   ? (
                     <CheckCircleIcon
-                      sx={{ fontSize: "1rem", color: "green" }}
+                      sx={{ fontSize: { xs: "18px", sm: "20px" }, color: "#4caf50" }}
                     />
                   )
-                  : <BlockIcon sx={{ fontSize: "1rem", color: "red" }} />}
+                  : <BlockIcon sx={{ fontSize: { xs: "18px", sm: "20px" }, color: "#f44336" }} />}
               </IconButton>
             </Tooltip>
             <Tooltip title={props.row.original.immuneToIPBan ? t("撤銷IP封鎖免疫") : t("授予IP封鎖免疫")}>
               <IconButton
                 aria-label="toggle-immune"
                 onClick={() => handleToggleImmune(props.row.original._id)}
+                sx={{
+                  padding: { xs: "6px", sm: "8px" },
+                  "&:hover": {
+                    backgroundColor: "rgba(50, 205, 50, 0.2)",
+                  },
+                }}
               >
                 <VerifiedIcon sx={{ 
-                  fontSize: "1rem",
+                  fontSize: { xs: "18px", sm: "20px" },
                   color: props.row.original.immuneToIPBan ? "#4caf50" : "rgba(255,255,255,0.5)"
                 }} />
               </IconButton>
@@ -205,12 +236,18 @@ const MemberTable = ({
 
   return (
     <>
-      <Box mb={2} sx={{ mt: 4 }}>
+      <Box 
+        mb={3} 
+        sx={{ 
+          mt: { xs: 2, sm: 4 },
+          px: { xs: 0, sm: 0 },
+        }}
+      >
         <TextField
           fullWidth
           variant="outlined"
-          label={t("Search Members")}
-          placeholder={t("Type to search...")}
+          label={t("搜索會員")}
+          placeholder={t("輸入關鍵字搜尋...")}
           value={searchTerm}
           onChange={handleSearchChange}
           sx={{
@@ -218,6 +255,7 @@ const MemberTable = ({
               borderRadius: "12px",
               backgroundColor: "rgba(255, 255, 255, 0.05)",
               transition: "all 0.3s ease",
+              fontSize: { xs: "14px", sm: "16px" },
               "&:hover": {
                 backgroundColor: "rgba(255, 255, 255, 0.08)",
               },
@@ -227,6 +265,7 @@ const MemberTable = ({
             },
             "& .MuiInputLabel-root": {
               color: "rgba(255, 255, 255, 0.7)",
+              fontSize: { xs: "14px", sm: "16px" },
             },
             "& .MuiOutlinedInput-notchedOutline": {
               borderColor: "rgba(255, 255, 255, 0.2)",
@@ -247,19 +286,22 @@ const MemberTable = ({
           }}
         />
       </Box>
-      <TableContainer 
-        component={Paper}
-        sx={{
-          backgroundColor: "transparent",
-          boxShadow: "none",
-          borderRadius: "12px",
-          overflow: "hidden",
-          "& .MuiTable-root": {
-            borderCollapse: "separate",
-            borderSpacing: "0 8px",
-          },
-        }}
-      >
+
+      {/* Desktop Table View */}
+      <Box sx={{ display: { xs: "none", md: "block" } }}>
+        <TableContainer 
+          component={Paper}
+          sx={{
+            backgroundColor: "transparent",
+            boxShadow: "none",
+            borderRadius: "12px",
+            overflow: "hidden",
+            "& .MuiTable-root": {
+              borderCollapse: "separate",
+              borderSpacing: "0 8px",
+            },
+          }}
+        >
         <Table>
           <TableHead>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -280,6 +322,8 @@ const MemberTable = ({
                       cursor: "pointer",
                       userSelect: "none",
                       transition: "all 0.2s ease",
+                      fontSize: { xs: "13px", sm: "14px", md: "15px" },
+                      padding: { xs: "12px 8px", sm: "14px 12px", md: "16px" },
                       "&:hover": {
                         backgroundColor: "rgba(50, 205, 50, 0.2)",
                       },
@@ -331,8 +375,10 @@ const MemberTable = ({
                   <TableCell 
                     key={cell.id} 
                     sx={{ 
-                      whiteSpace: 'nowrap',
+                      whiteSpace: cell.column.id === "操作" ? "normal" : 'nowrap',
                       color: "rgba(255, 255, 255, 0.9)",
+                      fontSize: { xs: "12px", sm: "13px", md: "14px" },
+                      padding: { xs: "12px 8px", sm: "14px 12px", md: "16px" },
                     }}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -343,25 +389,229 @@ const MemberTable = ({
           </TableBody>
         </Table>
       </TableContainer>
+      </Box>
+
+      {/* Mobile Card View */}
+      <Box sx={{ display: { xs: "block", md: "none" } }}>
+        {table.getRowModel().rows.map((row, index) => {
+          const member = row.original;
+          return (
+            <Paper
+              key={row.id}
+              sx={{
+                backgroundColor: index % 2 === 0 
+                  ? "rgba(255, 255, 255, 0.03)" 
+                  : "rgba(255, 255, 255, 0.05)",
+                borderRadius: "16px",
+                padding: "16px",
+                marginBottom: "12px",
+                border: "1px solid rgba(255, 255, 255, 0.1)",
+                transition: "all 0.3s ease",
+                "&:hover": {
+                  backgroundColor: "rgba(50, 205, 50, 0.12)",
+                  borderColor: "rgba(50, 205, 50, 0.3)",
+                  boxShadow: "0 4px 12px rgba(50, 205, 50, 0.2)",
+                },
+              }}
+            >
+              <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", mb: 2 }}>
+                <Box sx={{ flex: 1 }}>
+                  <Typography sx={{ color: "rgba(255, 255, 255, 0.6)", fontSize: "12px", mb: 0.5 }}>
+                    {t("用戶名")}
+                  </Typography>
+                  <Typography sx={{ color: "rgba(255, 255, 255, 0.9)", fontSize: "16px", fontWeight: 600 }}>
+                    {member.username}
+                  </Typography>
+                </Box>
+                <Box sx={{ display: "flex", gap: { xs: 0.5, sm: 1 }, flexWrap: "wrap" }}>
+                  <Tooltip title={t("編輯")}>
+                    <IconButton
+                      aria-label="edit"
+                      onClick={() => handleEditCredentialOpen(member)}
+                      size="small"
+                      sx={{
+                        padding: "6px",
+                        "&:hover": {
+                          backgroundColor: "rgba(50, 205, 50, 0.2)",
+                        },
+                      }}
+                    >
+                      <EditIcon sx={{ fontSize: "18px" }} />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title={t("編輯價格")}>
+                    <IconButton
+                      aria-label="edit-price"
+                      onClick={() => handleEditPriceOpen(member)}
+                      size="small"
+                      sx={{
+                        padding: "6px",
+                        "&:hover": {
+                          backgroundColor: "rgba(50, 205, 50, 0.2)",
+                        },
+                      }}
+                    >
+                      <AttachMoneyIcon sx={{ fontSize: "18px" }} />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title={t("刪除")}>
+                    <IconButton
+                      aria-label="delete"
+                      onClick={() => handleDeleteMemberOpen(member)}
+                      size="small"
+                      sx={{
+                        padding: "6px",
+                        "&:hover": {
+                          backgroundColor: "rgba(255, 71, 87, 0.2)",
+                        },
+                      }}
+                    >
+                      <DeleteIcon sx={{ fontSize: "18px" }} />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title={member.blocked ? t("解除封鎖") : t("封鎖")}>
+                    <IconButton
+                      aria-label={member.blocked ? t("解除封鎖") : t("封鎖")}
+                      onClick={() =>
+                        member.blocked
+                          ? handleUnblockMember(member._id)
+                          : handleBlockMember(member._id)}
+                      size="small"
+                      sx={{
+                        padding: "6px",
+                        "&:hover": {
+                          backgroundColor: member.blocked 
+                            ? "rgba(76, 175, 80, 0.2)"
+                            : "rgba(244, 67, 54, 0.2)",
+                        },
+                      }}
+                    >
+                      {member.blocked
+                        ? <CheckCircleIcon sx={{ fontSize: "18px", color: "#4caf50" }} />
+                        : <BlockIcon sx={{ fontSize: "18px", color: "#f44336" }} />}
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title={member.immuneToIPBan ? t("撤銷IP封鎖免疫") : t("授予IP封鎖免疫")}>
+                    <IconButton
+                      aria-label="toggle-immune"
+                      onClick={() => handleToggleImmune(member._id)}
+                      size="small"
+                      sx={{
+                        padding: "6px",
+                        "&:hover": {
+                          backgroundColor: "rgba(50, 205, 50, 0.2)",
+                        },
+                      }}
+                    >
+                      <VerifiedIcon sx={{ 
+                        fontSize: "18px",
+                        color: member.immuneToIPBan ? "#4caf50" : "rgba(255,255,255,0.5)"
+                      }} />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+              </Box>
+              
+              <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 2 }}>
+                <Box>
+                  <Typography sx={{ color: "rgba(255, 255, 255, 0.6)", fontSize: "12px", mb: 0.5 }}>
+                    {t("價格")}
+                  </Typography>
+                  <Typography sx={{ color: "#32cd32", fontSize: "14px", fontWeight: 600 }}>
+                    {member.price}
+                  </Typography>
+                </Box>
+                <Box>
+                  <Typography sx={{ color: "rgba(255, 255, 255, 0.6)", fontSize: "12px", mb: 0.5 }}>
+                    {t("識別碼")}
+                  </Typography>
+                  <Typography sx={{ color: "rgba(255, 255, 255, 0.8)", fontSize: "12px", fontFamily: "monospace" }}>
+                    {member.slug}
+                  </Typography>
+                </Box>
+              </Box>
+
+              <Box sx={{ mt: 2, pt: 2, borderTop: "1px solid rgba(255, 255, 255, 0.1)" }}>
+                <Typography sx={{ color: "rgba(255, 255, 255, 0.6)", fontSize: "12px", mb: 0.5 }}>
+                  {t("Date")}
+                </Typography>
+                <Typography sx={{ color: "rgba(255, 255, 255, 0.8)", fontSize: "14px" }}>
+                  {format(new Date(member.date), "yyyy年M月d日(E)", { locale: zhCN })}
+                </Typography>
+              </Box>
+            </Paper>
+          );
+        })}
+      </Box>
+
+      {/* Pagination */}
       <Box
-        mt={2}
+        mt={3}
         display="flex"
         justifyContent="space-between"
         alignItems="center"
+        flexWrap="wrap"
+        gap={2}
+        sx={{
+          px: { xs: 1, sm: 0 },
+        }}
       >
         <Button
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
+          variant="outlined"
+          sx={{
+            borderRadius: "12px",
+            padding: { xs: "8px 16px", sm: "10px 24px" },
+            fontSize: { xs: "12px", sm: "14px" },
+            borderColor: "rgba(255, 255, 255, 0.2)",
+            color: "rgba(255, 255, 255, 0.8)",
+            textTransform: "none",
+            minWidth: { xs: "80px", sm: "100px" },
+            "&:hover": {
+              borderColor: "#32cd32",
+              backgroundColor: "rgba(50, 205, 50, 0.1)",
+            },
+            "&:disabled": {
+              borderColor: "rgba(255, 255, 255, 0.1)",
+              color: "rgba(255, 255, 255, 0.3)",
+            },
+          }}
         >
           {t("上一頁")}
         </Button>
-        <span>
-          {t("第")} {table.getState().pagination.pageIndex + 1} {t("頁")}{" "}
-          {t("共")} {table.getPageCount()} {t("頁")}
-        </span>
+        <Typography
+          sx={{
+            color: "rgba(255, 255, 255, 0.7)",
+            fontSize: { xs: "12px", sm: "14px" },
+            fontWeight: 500,
+          }}
+        >
+          {t("第")} <span style={{ color: "#32cd32", fontWeight: 600 }}>{table.getState().pagination.pageIndex + 1}</span> {t("頁")}
+          {" / "}
+          {t("共")} <span style={{ color: "#32cd32", fontWeight: 600 }}>{table.getPageCount()}</span> {t("頁")}
+        </Typography>
         <Button
           onClick={() => table.nextPage()}
           disabled={!table.getCanNextPage()}
+          variant="outlined"
+          sx={{
+            borderRadius: "12px",
+            padding: { xs: "8px 16px", sm: "10px 24px" },
+            fontSize: { xs: "12px", sm: "14px" },
+            borderColor: "rgba(255, 255, 255, 0.2)",
+            color: "rgba(255, 255, 255, 0.8)",
+            textTransform: "none",
+            minWidth: { xs: "80px", sm: "100px" },
+            "&:hover": {
+              borderColor: "#32cd32",
+              backgroundColor: "rgba(50, 205, 50, 0.1)",
+            },
+            "&:disabled": {
+              borderColor: "rgba(255, 255, 255, 0.1)",
+              color: "rgba(255, 255, 255, 0.3)",
+            },
+          }}
         >
           {t("下一頁")}
         </Button>

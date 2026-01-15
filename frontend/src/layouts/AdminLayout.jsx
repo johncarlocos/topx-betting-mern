@@ -478,43 +478,71 @@ const AdminLayout = ({ children }) => {
       <AppBar
         component="nav"
         sx={{
-          backgroundColor: "#333",
+          background: "linear-gradient(180deg, rgba(26, 31, 58, 0.95) 0%, rgba(15, 21, 41, 0.95) 100%)",
+          backdropFilter: "blur(10px)",
           position: "fixed",
-          width: { sm: `calc(100% - 300px)` },
-          ml: { sm: "300px" },
+          width: { sm: `calc(100% - 280px)` },
+          ml: { sm: "280px" },
+          boxShadow: "0 4px 20px rgba(0, 0, 0, 0.3)",
+          borderBottom: "1px solid rgba(50, 205, 50, 0.1)",
+          zIndex: 1200,
         }}
       >
-        <Toolbar>
+        <Toolbar sx={{ 
+          padding: { xs: "8px 16px", sm: "12px 24px" },
+          minHeight: { xs: "56px", sm: "64px" },
+        }}>
           <IconButton
             color="inherit"
             aria-label="open drawer"
             edge="start"
             onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { sm: "none" } }}
+            sx={{ 
+              mr: 2, 
+              display: { sm: "none" },
+              color: "rgba(255, 255, 255, 0.9)",
+              "&:hover": {
+                backgroundColor: "rgba(50, 205, 50, 0.2)",
+              },
+            }}
           >
             <MenuIcon />
           </IconButton>
           <Typography
             variant="h6"
             component="div"
-            sx={{ flexGrow: 1, display: { xs: "none", sm: "block" } }}
+            sx={{ 
+              flexGrow: 1, 
+              display: { xs: "none", sm: "block" },
+              color: "rgba(255, 255, 255, 0.9)",
+            }}
           />
           <Box
             sx={{
               display: { xs: "none", sm: "flex" },
               alignItems: "center",
-              gap: 2,
+              gap: { sm: 1, md: 2 },
             }}
           >
             {/* Top Navigation Links - Only visible on desktop */}
             <Link
               to="/#homePage"
               style={{
-                color: "white",
+                color: "rgba(255, 255, 255, 0.85)",
                 textDecoration: "none",
-                padding: "8px 12px",
-                borderRadius: "4px",
-                "&:hover": { backgroundColor: "rgba(255,255,255,0.1)" },
+                padding: "8px 16px",
+                borderRadius: "8px",
+                fontSize: "14px",
+                fontWeight: 500,
+                transition: "all 0.3s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "rgba(50, 205, 50, 0.15)";
+                e.currentTarget.style.color = "#32cd32";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "transparent";
+                e.currentTarget.style.color = "rgba(255, 255, 255, 0.85)";
               }}
             >
               {t("主頁")}
@@ -522,11 +550,21 @@ const AdminLayout = ({ children }) => {
             <Link
               to="/#raceRecords"
               style={{
-                color: "white",
+                color: "rgba(255, 255, 255, 0.85)",
                 textDecoration: "none",
-                padding: "8px 12px",
-                borderRadius: "4px",
-                "&:hover": { backgroundColor: "rgba(255,255,255,0.1)" },
+                padding: "8px 16px",
+                borderRadius: "8px",
+                fontSize: "14px",
+                fontWeight: 500,
+                transition: "all 0.3s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "rgba(50, 205, 50, 0.15)";
+                e.currentTarget.style.color = "#32cd32";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "transparent";
+                e.currentTarget.style.color = "rgba(255, 255, 255, 0.85)";
               }}
             >
               {t("賽事紀錄")}
@@ -534,11 +572,21 @@ const AdminLayout = ({ children }) => {
             <Link
               to="/#contactUs"
               style={{
-                color: "white",
+                color: "rgba(255, 255, 255, 0.85)",
                 textDecoration: "none",
-                padding: "8px 12px",
-                borderRadius: "4px",
-                "&:hover": { backgroundColor: "rgba(255,255,255,0.1)" },
+                padding: "8px 16px",
+                borderRadius: "8px",
+                fontSize: "14px",
+                fontWeight: 500,
+                transition: "all 0.3s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = "rgba(50, 205, 50, 0.15)";
+                e.currentTarget.style.color = "#32cd32";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = "transparent";
+                e.currentTarget.style.color = "rgba(255, 255, 255, 0.85)";
               }}
             >
               {t("聯絡我們")}
@@ -547,11 +595,21 @@ const AdminLayout = ({ children }) => {
               <Link
                 to="/view-matches"
                 style={{
-                  color: "white",
+                  color: "rgba(255, 255, 255, 0.85)",
                   textDecoration: "none",
-                  padding: "8px 12px",
-                  borderRadius: "4px",
-                  "&:hover": { backgroundColor: "rgba(255,255,255,0.1)" },
+                  padding: "8px 16px",
+                  borderRadius: "8px",
+                  fontSize: "14px",
+                  fontWeight: 500,
+                  transition: "all 0.3s ease",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = "rgba(50, 205, 50, 0.15)";
+                  e.currentTarget.style.color = "#32cd32";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = "transparent";
+                  e.currentTarget.style.color = "rgba(255, 255, 255, 0.85)";
                 }}
               >
                 {t("賽事系統")}
@@ -627,8 +685,11 @@ const AdminLayout = ({ children }) => {
             display: { xs: "block", sm: "none" },
             "& .MuiDrawer-paper": {
               boxSizing: "border-box",
-              backgroundColor: "#333",
+              width: 280,
+              background: "linear-gradient(180deg, #1a1f3a 0%, #0f1529 100%)",
               color: "white",
+              borderRight: "1px solid rgba(50, 205, 50, 0.1)",
+              boxShadow: "4px 0 20px rgba(0, 0, 0, 0.3)",
             },
           }}
         >
@@ -640,9 +701,11 @@ const AdminLayout = ({ children }) => {
             display: { xs: "none", sm: "block" },
             "& .MuiDrawer-paper": {
               boxSizing: "border-box",
-              width: 300,
-              backgroundColor: "#333",
+              width: 280,
+              background: "linear-gradient(180deg, #1a1f3a 0%, #0f1529 100%)",
               color: "white",
+              borderRight: "1px solid rgba(50, 205, 50, 0.1)",
+              boxShadow: "4px 0 20px rgba(0, 0, 0, 0.3)",
             },
           }}
           open
@@ -654,12 +717,13 @@ const AdminLayout = ({ children }) => {
         component="main"
         sx={{
           flexGrow: 1,
-          width: { sm: `calc(100% - 300px)` },
-          ml: { sm: "300px" },
-          mt: "64px", // Height of AppBar
-          overflowX: "auto",
-          minHeight: "calc(100vh - 64px)",
-          padding: { xs: 0, sm: 3 },
+          width: { sm: `calc(100% - 280px)` },
+          ml: { sm: "280px" },
+          mt: { xs: "56px", sm: "64px" }, // Height of AppBar
+          overflowX: "hidden",
+          minHeight: { xs: "calc(100vh - 56px)", sm: "calc(100vh - 64px)" },
+          padding: { xs: "16px", sm: "24px", md: "32px" },
+          backgroundColor: "transparent",
         }}
       >
         {children}

@@ -6,6 +6,11 @@
   @media (max-width: 600px) {
     padding: 0;
   }
+  
+  // Ensure proper spacing on mobile
+  @media (max-width: 768px) {
+    padding: 0;
+  }
 }
 
 .manageAdminsTitle {
@@ -18,9 +23,19 @@
   font-weight: 700;
   letter-spacing: -0.5px;
   
+  @media (max-width: 960px) {
+    font-size: 2.25rem;
+    margin-bottom: 28px;
+  }
+  
   @media (max-width: 768px) {
-    font-size: 2rem;
-    margin-bottom: 24px;
+    font-size: 1.75rem;
+    margin-bottom: 20px;
+  }
+  
+  @media (max-width: 480px) {
+    font-size: 1.5rem;
+    margin-bottom: 16px;
   }
 }
 

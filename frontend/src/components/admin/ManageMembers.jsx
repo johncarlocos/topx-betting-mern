@@ -420,16 +420,22 @@ const ManageMembers = () => {
       <Box
         display="flex"
         justifyContent="space-between"
-        alignItems="center"
-        mb={2}
-        sx={{ flexDirection: { xs: "column", sm: "row" } }}
+        alignItems={{ xs: "stretch", sm: "center" }}
+        mb={3}
+        sx={{ 
+          flexDirection: { xs: "column", sm: "row" },
+          gap: { xs: 2, sm: 0 },
+        }}
       >
         <Typography
           variant="h4"
           component="h1"
           className={styles.manageMembersTitle}
           style={{ color: "white" }}
-          sx={{ mb: { xs: 2, sm: 0 } }}
+          sx={{ 
+            mb: 0,
+            fontSize: { xs: "1.75rem", sm: "2rem", md: "2.5rem" },
+          }}
         >
           {t("管理會員")}
         </Typography>
@@ -439,9 +445,21 @@ const ManageMembers = () => {
           startIcon={<AddIcon />}
           onClick={handleOpenDialog}
           sx={{
+            width: { xs: "100%", sm: "auto" },
             background: "linear-gradient(135deg, #32cd32 0%, #28a428 100%)",
+            borderRadius: "12px",
+            padding: { xs: "12px 24px", sm: "10px 24px" },
+            fontSize: { xs: "14px", sm: "16px" },
+            fontWeight: 600,
+            textTransform: "none",
+            boxShadow: "0 4px 12px rgba(50, 205, 50, 0.3)",
             "&:hover": {
               background: "linear-gradient(135deg, #28a428 0%, #32cd32 100%)",
+              transform: "translateY(-2px)",
+              boxShadow: "0 6px 20px rgba(50, 205, 50, 0.4)",
+            },
+            "& .MuiButton-startIcon": {
+              marginRight: { xs: "8px", sm: "8px" },
             },
           }}
         >
@@ -459,16 +477,19 @@ const ManageMembers = () => {
                 backgroundColor: "rgba(26, 31, 58, 0.6)",
                 backdropFilter: "blur(10px)",
                 color: "white",
-                padding: "24px",
+                padding: { xs: "16px", sm: "20px", md: "24px" },
                 margin: 0,
                 width: "100%",
-                borderRadius: "20px",
+                borderRadius: { xs: "16px", sm: "20px" },
                 border: "1px solid rgba(255, 255, 255, 0.1)",
                 boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
                 overflow: "hidden",
               }}
             >
-              <div style={{ overflowX: "auto" }}>
+              <Box sx={{ 
+                overflowX: { xs: "visible", md: "auto" },
+                overflowY: "visible",
+              }}>
                 <MemberTable
                   members={memberList}
                   handleBlockMember={handleBlockMember}
@@ -478,7 +499,7 @@ const ManageMembers = () => {
                   handleDeleteMemberOpen={handleDeleteMemberOpen}
                   handleToggleImmune={handleToggleImmune}
                 />
-              </div>
+              </Box>
             </Paper>
           </ThemeProvider>
         )}
@@ -486,24 +507,33 @@ const ManageMembers = () => {
         <Dialog 
           open={openDialog} 
           onClose={handleCloseDialog}
+          fullWidth
+          maxWidth="sm"
           PaperProps={{
             sx: {
               background: "rgba(26, 31, 58, 0.95)",
               backdropFilter: "blur(20px)",
-              borderRadius: "20px",
+              borderRadius: { xs: "16px", sm: "20px" },
               border: "1px solid rgba(255, 255, 255, 0.1)",
+              margin: { xs: "16px", sm: "32px" },
+              width: { xs: "calc(100% - 32px)", sm: "auto" },
             }
           }}
         >
-          <DialogTitle sx={{ color: "rgba(255, 255, 255, 0.9)", fontSize: "1.5rem", fontWeight: 600 }}>
+          <DialogTitle sx={{ 
+            color: "rgba(255, 255, 255, 0.9)", 
+            fontSize: { xs: "1.25rem", sm: "1.5rem" }, 
+            fontWeight: 600,
+            padding: { xs: "20px 20px 16px", sm: "24px 24px 20px" },
+          }}>
             {t("新增會員")}
           </DialogTitle>
         <DialogContent
           sx={{
-            padding: "20px",
+            padding: { xs: "16px 20px", sm: "20px 24px" },
             display: "flex",
             flexDirection: "column",
-            gap: "16px",
+            gap: { xs: "12px", sm: "16px" },
           }}
         >
           <TextField
@@ -546,38 +576,66 @@ const ManageMembers = () => {
           />
           {dialogError && <p className="error-message">{dialogError}</p>}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>{t("取消")}</Button>
+        <DialogActions sx={{
+          padding: { xs: "16px 20px 20px", sm: "20px 24px 24px" },
+          gap: { xs: 1, sm: 2 },
+        }}>
+          <Button 
+            onClick={handleCloseDialog}
+            sx={{
+              textTransform: "none",
+              padding: { xs: "8px 16px", sm: "10px 24px" },
+              fontSize: { xs: "14px", sm: "16px" },
+            }}
+          >
+            {t("取消")}
+          </Button>
           <Button
             onClick={handleAddMember}
             color="primary"
             disabled={addMutation.isLoading}
+            variant="contained"
+            sx={{
+              textTransform: "none",
+              padding: { xs: "8px 16px", sm: "10px 24px" },
+              fontSize: { xs: "14px", sm: "16px" },
+              borderRadius: "12px",
+            }}
           >
-            {addMutation.isLoading ? "Loading..." : t("新增")}
+            {addMutation.isLoading ? t("載入中...") : t("新增")}
           </Button>
         </DialogActions>
       </Dialog>
       <Dialog
         open={editPriceOpen}
         onClose={handleEditPriceClose}
+        fullWidth
+        maxWidth="sm"
         PaperProps={{
           sx: {
             background: "rgba(26, 31, 58, 0.95)",
             backdropFilter: "blur(20px)",
-            borderRadius: "20px",
+            borderRadius: { xs: "16px", sm: "20px" },
             border: "1px solid rgba(255, 255, 255, 0.1)",
+            margin: { xs: "16px", sm: "32px" },
+            width: { xs: "calc(100% - 32px)", sm: "auto" },
           }
         }}
       >
-        <DialogTitle sx={{ color: "rgba(255, 255, 255, 0.9)", fontSize: "1.5rem", fontWeight: 600 }}>
+        <DialogTitle sx={{ 
+          color: "rgba(255, 255, 255, 0.9)", 
+          fontSize: { xs: "1.25rem", sm: "1.5rem" }, 
+          fontWeight: 600,
+          padding: { xs: "20px 20px 16px", sm: "24px 24px 20px" },
+        }}>
           {t("編輯會員")}
         </DialogTitle>
         <DialogContent
           sx={{
-            padding: "20px",
+            padding: { xs: "16px 20px", sm: "20px 24px" },
             display: "flex",
             flexDirection: "column",
-            gap: "16px",
+            gap: { xs: "12px", sm: "16px" },
           }}
         >
           <TextField
@@ -589,9 +647,31 @@ const ManageMembers = () => {
             autoComplete="off"
           />
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleEditPriceClose}>{t("取消")}</Button>
-          <Button onClick={handleEditMemberPrice} color="primary">
+        <DialogActions sx={{
+          padding: { xs: "16px 20px 20px", sm: "20px 24px 24px" },
+          gap: { xs: 1, sm: 2 },
+        }}>
+          <Button 
+            onClick={handleEditPriceClose}
+            sx={{
+              textTransform: "none",
+              padding: { xs: "8px 16px", sm: "10px 24px" },
+              fontSize: { xs: "14px", sm: "16px" },
+            }}
+          >
+            {t("取消")}
+          </Button>
+          <Button 
+            onClick={handleEditMemberPrice} 
+            color="primary"
+            variant="contained"
+            sx={{
+              textTransform: "none",
+              padding: { xs: "8px 16px", sm: "10px 24px" },
+              fontSize: { xs: "14px", sm: "16px" },
+              borderRadius: "12px",
+            }}
+          >
             {t("儲存")}
           </Button>
         </DialogActions>
@@ -599,24 +679,33 @@ const ManageMembers = () => {
       <Dialog
         open={editCredentialOpen}
         onClose={handleEditCredentialClose}
+        fullWidth
+        maxWidth="sm"
         PaperProps={{
           sx: {
             background: "rgba(26, 31, 58, 0.95)",
             backdropFilter: "blur(20px)",
-            borderRadius: "20px",
+            borderRadius: { xs: "16px", sm: "20px" },
             border: "1px solid rgba(255, 255, 255, 0.1)",
+            margin: { xs: "16px", sm: "32px" },
+            width: { xs: "calc(100% - 32px)", sm: "auto" },
           }
         }}
       >
-        <DialogTitle sx={{ color: "rgba(255, 255, 255, 0.9)", fontSize: "1.5rem", fontWeight: 600 }}>
+        <DialogTitle sx={{ 
+          color: "rgba(255, 255, 255, 0.9)", 
+          fontSize: { xs: "1.25rem", sm: "1.5rem" }, 
+          fontWeight: 600,
+          padding: { xs: "20px 20px 16px", sm: "24px 24px 20px" },
+        }}>
           {t("編輯會員")}
         </DialogTitle>
         <DialogContent
           sx={{
-            padding: "20px",
+            padding: { xs: "16px 20px", sm: "20px 24px" },
             display: "flex",
             flexDirection: "column",
-            gap: "16px",
+            gap: { xs: "12px", sm: "16px" },
           }}
         >
           <TextField
@@ -637,9 +726,31 @@ const ManageMembers = () => {
             autoComplete="new-password"
           />
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleEditCredentialClose}>{t("取消")}</Button>
-          <Button onClick={handleEditMemberCredential} color="primary">
+        <DialogActions sx={{
+          padding: { xs: "16px 20px 20px", sm: "20px 24px 24px" },
+          gap: { xs: 1, sm: 2 },
+        }}>
+          <Button 
+            onClick={handleEditCredentialClose}
+            sx={{
+              textTransform: "none",
+              padding: { xs: "8px 16px", sm: "10px 24px" },
+              fontSize: { xs: "14px", sm: "16px" },
+            }}
+          >
+            {t("取消")}
+          </Button>
+          <Button 
+            onClick={handleEditMemberCredential} 
+            color="primary"
+            variant="contained"
+            sx={{
+              textTransform: "none",
+              padding: { xs: "8px 16px", sm: "10px 24px" },
+              fontSize: { xs: "14px", sm: "16px" },
+              borderRadius: "12px",
+            }}
+          >
             {t("儲存")}
           </Button>
         </DialogActions>
@@ -647,31 +758,64 @@ const ManageMembers = () => {
       <Dialog 
         open={deleteOpen} 
         onClose={handleDeleteMemberClose}
+        fullWidth
+        maxWidth="sm"
         PaperProps={{
           sx: {
             background: "rgba(26, 31, 58, 0.95)",
             backdropFilter: "blur(20px)",
-            borderRadius: "20px",
+            borderRadius: { xs: "16px", sm: "20px" },
             border: "1px solid rgba(255, 255, 255, 0.1)",
+            margin: { xs: "16px", sm: "32px" },
+            width: { xs: "calc(100% - 32px)", sm: "auto" },
           }
         }}
       >
-        <DialogTitle sx={{ color: "rgba(255, 255, 255, 0.9)", fontSize: "1.5rem", fontWeight: 600 }}>
+        <DialogTitle sx={{ 
+          color: "rgba(255, 255, 255, 0.9)", 
+          fontSize: { xs: "1.25rem", sm: "1.5rem" }, 
+          fontWeight: 600,
+          padding: { xs: "20px 20px 16px", sm: "24px 24px 20px" },
+        }}>
           {t("刪除會員")}
         </DialogTitle>
-        <DialogContent>
-          <Typography sx={{ color: "rgba(255, 255, 255, 0.8)" }}>
+        <DialogContent sx={{
+          padding: { xs: "16px 20px", sm: "20px 24px" },
+        }}>
+          <Typography sx={{ 
+            color: "rgba(255, 255, 255, 0.8)",
+            fontSize: { xs: "14px", sm: "16px" },
+          }}>
             {t("確定要刪除此會員嗎？")}
           </Typography>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleDeleteMemberClose}>{t("取消")}</Button>
+        <DialogActions sx={{
+          padding: { xs: "16px 20px 20px", sm: "20px 24px 24px" },
+          gap: { xs: 1, sm: 2 },
+        }}>
+          <Button 
+            onClick={handleDeleteMemberClose}
+            sx={{
+              textTransform: "none",
+              padding: { xs: "8px 16px", sm: "10px 24px" },
+              fontSize: { xs: "14px", sm: "16px" },
+            }}
+          >
+            {t("取消")}
+          </Button>
           <Button
             onClick={handleDeleteMember}
             color="error"
             disabled={deleteMutation.isLoading}
+            variant="contained"
+            sx={{
+              textTransform: "none",
+              padding: { xs: "8px 16px", sm: "10px 24px" },
+              fontSize: { xs: "14px", sm: "16px" },
+              borderRadius: "12px",
+            }}
           >
-            {deleteMutation.isLoading ? "Deleting..." : <>{t("刪除")}</>}
+            {deleteMutation.isLoading ? t("刪除中...") : t("刪除")}
           </Button>
         </DialogActions>
       </Dialog>
