@@ -49,7 +49,13 @@ const Explore = () => {
               className={`block-style-twelve block-space mt-30 ${val.className}`}
             >
               <div className="icon d-flex align-items-end mb-20">
-                <img src={`images/icon/${val.icon}.svg`} alt="" />
+                <img 
+                  src={`/images/icon/${val.icon}.svg`} 
+                  alt={val.title}
+                  onError={(e) => {
+                    console.error(`Failed to load icon: /images/icon/${val.icon}.svg`);
+                  }}
+                />
               </div>
               <h5>
                 {val.title}

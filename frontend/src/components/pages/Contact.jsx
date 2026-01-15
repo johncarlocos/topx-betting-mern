@@ -39,9 +39,12 @@ const Contact = () => {
         </div>
         <div className="illustration-holder" data-aos="fade-right">
           <img
-            src="images/assets/ils_16.svg"
-            alt=""
+            src="/images/assets/ils_16.svg"
+            alt="Contact Illustration"
             className="w-100 main-illustration"
+            onError={(e) => {
+              console.error('Failed to load image: /images/assets/ils_16.svg');
+            }}
           />
         </div>
         {/* /.illustration-holder */}

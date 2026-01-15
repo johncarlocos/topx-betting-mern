@@ -72,9 +72,13 @@ const PortfolioGallery = () => {
             <a href={val.link} target="_blank" className="portfolio-block-one">
               <div className="img-meta">
                 <img
-                  src={`images/gallery/${val.img}.jpg`}
-                  alt=""
+                  src={`/images/gallery/${val.img}.jpg`}
+                  alt={val.tag}
                   className="w-100"
+                  onError={(e) => {
+                    console.error(`Failed to load image: /images/gallery/${val.img}.jpg`);
+                    e.target.style.display = 'none';
+                  }}
                 />
               </div>
             </a>

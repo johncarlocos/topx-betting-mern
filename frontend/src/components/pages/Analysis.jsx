@@ -38,49 +38,73 @@ const Analysis = () => {
 
         <div className="illustration-holder" data-aos="fade-right">
           <img
-            src="images/assets/ils_14.svg"
-            alt=""
+            src="/images/assets/ils_14.svg"
+            alt="Illustration"
             className="w-100 main-illustration"
+            onError={(e) => {
+              console.error('Failed to load image: /images/assets/ils_14.svg');
+            }}
           />
           <img
-            src="images/assets/ils_14_1.svg"
-            alt=""
+            src="/images/assets/ils_14_1.svg"
+            alt="Shape"
             className="shapes shape-one"
             data-aos="fade-down"
+            onError={(e) => {
+              console.error('Failed to load image: /images/assets/ils_14_1.svg');
+            }}
           />
           <img
-            src="images/assets/ils_14_2.svg"
-            alt=""
+            src="/images/assets/ils_14_2.svg"
+            alt="Shape"
             className="shapes shape-two"
             data-aos="fade-down"
             data-aos-delay={100}
+            onError={(e) => {
+              console.error('Failed to load image: /images/assets/ils_14_2.svg');
+            }}
           />
           <img
-            src="images/assets/ils_14_3.svg"
-            alt=""
+            src="/images/assets/ils_14_3.svg"
+            alt="Shape"
             className="shapes shape-three"
             data-aos="fade-down"
             data-aos-delay={200}
+            onError={(e) => {
+              console.error('Failed to load image: /images/assets/ils_14_3.svg');
+            }}
           />
           <img
-            src="images/assets/ils_14_4.svg"
-            alt=""
+            src="/images/assets/ils_14_4.svg"
+            alt="Shape"
             className="shapes shape-four"
+            onError={(e) => {
+              console.error('Failed to load image: /images/assets/ils_14_4.svg');
+            }}
           />
           <img
-            src="images/assets/ils_14_5.svg"
-            alt=""
+            src="/images/assets/ils_14_5.svg"
+            alt="Shape"
             className="shapes shape-five"
+            onError={(e) => {
+              console.error('Failed to load image: /images/assets/ils_14_5.svg');
+            }}
           />
           <img
-            src="images/assets/ils_14_6.svg"
-            alt=""
+            src="/images/assets/ils_14_6.svg"
+            alt="Shape"
             className="shapes shape-six"
+            onError={(e) => {
+              console.error('Failed to load image: /images/assets/ils_14_6.svg');
+            }}
           />
           <img
-            src="images/assets/ils_14_7.svg"
-            alt=""
+            src="/images/assets/ils_14_7.svg"
+            alt="Shape"
             className="shapes shape-seven"
+            onError={(e) => {
+              console.error('Failed to load image: /images/assets/ils_14_7.svg');
+            }}
           />
         </div>
         {/* /.illustration-holder */}
