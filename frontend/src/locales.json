@@ -35,7 +35,11 @@
     "數據蒐集": "數據蒐集",
     "調用 FOOTBALL API 數據，結合 23,835 支球隊的歷史表現和當前狀態進行深入分析。": "調用 FOOTBALL API 數據，結合 23,835 支球隊的歷史表現和當前狀態進行深入分析。",
     "處理數據": "處理數據",
-    "生成準確的分析報告，推薦最佳投注方向。": "生成準確的分析報告，推薦最佳投注方向。"
+    "生成準確的分析報告，推薦最佳投注方向。": "生成準確的分析報告，推薦最佳投注方向。",
+    "社群分享": "社群分享",
+    "動態更新": "動態更新",
+    "分析紀錄": "分析紀錄",
+    "每日賽事記錄": "每日賽事記錄"
   },
   "en": {
     "探索": "Explore",
@@ -73,6 +77,10 @@
     "數據蒐集": "Data collection",
     "調用 FOOTBALL API 數據，結合 23,835 支球隊的歷史表現和當前狀態進行深入分析。": "Call FOOTBALL API data, combined with the historical performance and current status of 23,835 teams for in-depth analysis.",
     "處理數據": "Data processing",
-    "生成準確的分析報告，推薦最佳投注方向。": "Generate accurate analysis reports and recommend the best betting directions."
+    "生成準確的分析報告，推薦最佳投注方向。": "Generate accurate analysis reports and recommend the best betting directions.",
+    "社群分享": "Community Sharing",
+    "動態更新": "Dynamic Updates",
+    "分析紀錄": "Analysis Records",
+    "每日賽事記錄": "Daily Match Records"
   }
 }
