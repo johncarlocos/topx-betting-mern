@@ -23,15 +23,25 @@ api.interceptors.request.use(
   }
 );
 
-// Handle token expiration
+// Handle token expiration and authentication errors
 api.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Handle token expiration
     if (error.response?.status === 401 && error.response?.data?.message === "Token expired") {
       // Token expired, clear it and logout
       localStorage.removeItem("token");
       const logout = useAuthStore.getState().logout;
       logout();
+    }
+    // Handle 403 Forbidden errors (common when role doesn't match)
+    if (error.response?.status === 403) {
+      console.error("403 Forbidden error:", error.response.data);
+      // Don't logout here as it might be a specific permission issue
+    }
+    // Handle 402 Payment Required (unusual but handle it)
+    if (error.response?.status === 402) {
+      console.error("402 Payment Required error:", error.response.data);
     }
     return Promise.reject(error);
   }
@@ -54,14 +64,25 @@ const handleApiError = (error, navigate) => {
   if (error.response) {
     // The request was made and the server responded with a status code
     // that falls out of the range of 2xx
-    if (error.response.status === 401) {
+    const status = error.response.status;
+    if (status === 401) {
       // Only redirect if this is a session expiration error
       if (error.response.data?.code !== "INVALID_CREDENTIALS") {
         logout();
-        handleNavigation(navigate, userRole);
+        if (navigate) {
+          handleNavigation(navigate, userRole);
+        }
         return "Session expired, please log in again.";
       }
       return error.response.data.message || "Invalid credentials";
+    }
+    if (status === 403) {
+      // Forbidden - could be role mismatch or permission issue
+      return error.response.data.message || "Access forbidden";
+    }
+    if (status === 402) {
+      // Payment Required (unusual but handle it)
+      return error.response.data.message || "Payment required";
     }
     return error.response.data.message || "An error occurred";
   } else if (error.request) {

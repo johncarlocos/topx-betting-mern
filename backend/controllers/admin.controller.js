@@ -23,11 +23,27 @@ class AdminController {
    */
   static async login(req, res) {
     try {
-      const { username, password } = req.body;
+      const { username, password, expectedRole } = req.body;
       const admin = await Admin.findOne({ username }).select('+password');
 
       if (!admin) {
         return res.status(404).json({ message: "Admin not found" });
+      }
+
+      // Validate role if expectedRole is provided
+      if (expectedRole) {
+        if (expectedRole === "main" && admin.role !== "main") {
+          return res.status(403).json({ 
+            message: "Access denied. Main admin credentials required.",
+            code: "INVALID_ROLE" 
+          });
+        }
+        if (expectedRole === "sub" && admin.role !== "sub") {
+          return res.status(403).json({ 
+            message: "Access denied. Sub-admin credentials required.",
+            code: "INVALID_ROLE" 
+          });
+        }
       }
 
       console.log("Comparing password for admin:", admin.username);
