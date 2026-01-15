@@ -60,5 +60,11 @@ const Match = mongoose.model("Match", MatchSchema);
 
 // Add TTL index for cached data
 MatchSchema.index({ 'cachedData.expiresAt': 1 }, { expireAfterSeconds: 0 });
+// Index on id for faster lookups (already unique, but explicit is good)
+MatchSchema.index({ id: 1 });
+// Index on time for filtering by date
+MatchSchema.index({ time: 1 });
+// Compound index for cache lookups
+MatchSchema.index({ id: 1, 'cachedData.expiresAt': 1 });
 
 module.exports = { Match, MatchModel };

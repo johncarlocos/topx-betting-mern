@@ -1,6 +1,7 @@
 const jwt = require("jsonwebtoken");
 const { Admin } = require("../models/admin.model");
 const { Member } = require("../models/member.model");
+const { RedisCache } = require("../utils/redis");
 
 const authenticateAdmin = async (req, res, next) => {
   try {
@@ -23,7 +24,17 @@ const authenticateAdmin = async (req, res, next) => {
       return res.status(403).json({ message: "Access denied. Admin role required." });
     }
 
-    const admin = await Admin.findById(decoded.userId);
+    // Try to get admin from cache first (60 second TTL)
+    const cacheKey = `admin:${decoded.userId}`;
+    let admin = await RedisCache.get(cacheKey);
+    
+    if (!admin) {
+      admin = await Admin.findById(decoded.userId).lean();
+      if (admin) {
+        // Cache for 60 seconds
+        await RedisCache.set(cacheKey, admin, 60);
+      }
+    }
 
     if (!admin) {
       return res.status(404).json({ message: "Admin not found" });
@@ -66,7 +77,17 @@ const authenticateMember = async (req, res, next) => {
       return res.status(403).json({ message: "Access denied. Member role required." });
     }
 
-    const member = await Member.findById(decoded.userId);
+    // Try to get member from cache first (30 second TTL - shorter for members as blocked status changes)
+    const cacheKey = `member:${decoded.userId}`;
+    let member = await RedisCache.get(cacheKey);
+    
+    if (!member) {
+      member = await Member.findById(decoded.userId).lean();
+      if (member) {
+        // Cache for 30 seconds (shorter TTL for members due to blocked status)
+        await RedisCache.set(cacheKey, member, 30);
+      }
+    }
 
     if (!member) {
       return res.status(404).json({ message: "Member not found" });

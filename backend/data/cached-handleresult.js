@@ -1,7 +1,8 @@
 const { handleResult } = require('../handleResult');
 const { Match } = require('../models/match.model');
 const { MongoRateLimiter } = require('../utils/rateLimiter');
-const TelemetryService = require('../services/telemetry.service'); // Add telemetry import
+const TelemetryService = require('../services/telemetry.service');
+const { RedisCache } = require('../utils/redis');
 
 // Initialize rate limiter: 10/minute with fixed clientId
 const resultLimiter = new MongoRateLimiter({
@@ -14,21 +15,35 @@ async function cachedHandleResult(id) {
   try {
     await TelemetryService.log('debug', 'Starting cache check', { matchId: id });
     
-    // Check cache first
+    // Try Redis cache first (much faster)
+    const redisKey = `match:result:${id}`;
+    const redisCached = await RedisCache.get(redisKey);
+    
+    if (redisCached) {
+      await TelemetryService.log('info', 'Redis cache hit', { matchId: id });
+      return redisCached;
+    }
+    
+    // Fallback to MongoDB cache
     const cached = await Match.findOne({
       id,
       'cachedData.expiresAt': { $gt: new Date() }
     }).lean();
 
     if (cached?.cachedData) {
-      await TelemetryService.log('info', 'Cache hit', {
-        matchId: id,
-        ttl: cached.cachedData.expiresAt - Date.now()
-      });
-      return {
+      const result = {
         homeWinRate: cached.cachedData.homeWinRate,
         awayWinRate: cached.cachedData.awayWinRate
       };
+      
+      // Also cache in Redis for faster future access (55 minutes TTL)
+      await RedisCache.set(redisKey, result, 3300);
+      
+      await TelemetryService.log('info', 'MongoDB cache hit', {
+        matchId: id,
+        ttl: cached.cachedData.expiresAt - Date.now()
+      });
+      return result;
     }
 
     await TelemetryService.log('debug', 'Cache miss', { matchId: id });
@@ -54,12 +69,13 @@ async function cachedHandleResult(id) {
     await TelemetryService.log('info', 'Fetching fresh data', { matchId: id });
     const result = await handleResult(id);
 
-    // Update cache with TTL
-    await TelemetryService.log('debug', 'Updating cache', {
-      matchId: id,
-      expiresAt: new Date(Date.now() + 3600000)
-    });
+    // Update both Redis and MongoDB cache
+    const expiresAt = new Date(Date.now() + 3600000); // 1 hour
     
+    // Update Redis cache (55 minutes TTL to be slightly less than MongoDB)
+    await RedisCache.set(redisKey, result, 3300);
+    
+    // Update MongoDB cache
     await Match.findOneAndUpdate(
       { id },
       {
@@ -67,7 +83,7 @@ async function cachedHandleResult(id) {
           cachedData: {
             homeWinRate: result.homeWinRate,
             awayWinRate: result.awayWinRate,
-            expiresAt: new Date(Date.now() + 3600000) // 1 hour
+            expiresAt
           }
         }
       },

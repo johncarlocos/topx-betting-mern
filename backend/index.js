@@ -1,6 +1,8 @@
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
+const compression = require("compression");
+const fs = require("fs");
 
 // Global cache for match data
 global.cachedMatchData = [];
@@ -12,11 +14,16 @@ const TelemetryService = require("./services/telemetry.service");
 const cookieParser = require("cookie-parser");
 const bcrypt = require("bcryptjs");
 const { Admin } = require("./models/admin.model");
+const Logger = require("./utils/logger");
+const { RedisCache } = require("./utils/redis");
 
 require("dotenv").config();
 
 const app = express();
 const port = process.env.PORT || 5000;
+
+// Compression middleware - compress all responses
+app.use(compression());
 
 app.use(cors({
   origin: process.env.NODE_ENV === "production" 
@@ -29,15 +36,18 @@ app.use(cookieParser()); // Add cookie parsing middleware
 
 const uri = process.env.ATLAS_URI ||
   "mongodb://root:example@localhost:27017/betting-china?authSource=admin";
-console.log("Connecting to MongoDB database...", uri.replace(/\/\/[^:]+:[^@]+@/, "//***:***@")); // Hide password in logs
+Logger.info("Connecting to MongoDB database...", uri.replace(/\/\/[^:]+:[^@]+@/, "//***:***@")); // Hide password in logs
 
-// MongoDB connection options
+// MongoDB connection options with connection pooling
 const mongooseOptions = {
   serverSelectionTimeoutMS: 10000, // Timeout after 10s instead of 30s
   socketTimeoutMS: 45000, // Close sockets after 45s of inactivity
   connectTimeoutMS: 10000,
   retryWrites: true,
   retryReads: true,
+  maxPoolSize: 10, // Maintain up to 10 socket connections
+  minPoolSize: 2, // Maintain at least 2 socket connections
+  maxIdleTimeMS: 30000, // Close connections after 30 seconds of inactivity
 };
 
 mongoose.connect(uri, mongooseOptions);
@@ -45,16 +55,16 @@ const connection = mongoose.connection;
 
 // Handle connection errors
 connection.on("error", (err) => {
-  console.error("MongoDB connection error:", err.message);
-  console.error("Full error:", err);
+  Logger.error("MongoDB connection error:", err.message);
+  Logger.error("Full error:", err);
 });
 
 connection.on("disconnected", () => {
-  console.warn("MongoDB disconnected. Attempting to reconnect...");
+  Logger.warn("MongoDB disconnected. Attempting to reconnect...");
 });
 
 connection.once("open", async () => {
-  console.log("MongoDB database connection established successfully");
+  Logger.info("MongoDB database connection established successfully");
 
   try {
     // Create TTL index for cache expiration
@@ -74,9 +84,9 @@ connection.once("open", async () => {
       });
       await newAdmin.save();
       await TelemetryService.log("info", "Default admin user created.");
-      console.log("Default admin user created with username: Admin02");
+      Logger.info("Default admin user created with username: Admin02");
     } else {
-      console.log("Default admin user already exists.");
+      Logger.info("Default admin user already exists.");
     }
     
     // Trigger initial cache update if fetcher is enabled
@@ -84,34 +94,41 @@ connection.once("open", async () => {
       // Run initial cache update immediately after MongoDB is ready
       // Use setImmediate to ensure it runs after the current execution context
       setImmediate(async () => {
-        console.log("Running initial cache update after MongoDB connection...");
+        Logger.info("Running initial cache update after MongoDB connection...");
         try {
           const MatchService = require("./services/match.service");
           const { Cache } = require("./models/cache.model");
           const { updateHKMatches } = require("./getAPIFixtureId");
           
           const data = await MatchService.getMatchData();
-          console.log(`Initial fetch: ${data.length} matches`);
+          Logger.info(`Initial fetch: ${data.length} matches`);
           if (data.length > 0) {
-            await Cache.findOneAndUpdate(
-              { key: "matchData" },
-              { data, updatedAt: new Date() },
-              { upsert: true, new: true },
-            );
-            console.log("Initial cache populated with", data.length, "matches");
+            // Try Redis first, fallback to MongoDB
+            const cacheKey = "matchData";
+            const redisSet = await RedisCache.set(cacheKey, data, 300); // 5 minutes TTL
+            
+            if (!redisSet) {
+              // Fallback to MongoDB cache
+              await Cache.findOneAndUpdate(
+                { key: cacheKey },
+                { data, updatedAt: new Date() },
+                { upsert: true, new: true },
+              );
+            }
+            Logger.info("Initial cache populated with", data.length, "matches");
           } else {
-            console.warn("Initial cache update: No matches found");
+            Logger.warn("Initial cache update: No matches found");
           }
           await updateHKMatches();
-          console.log("Initial cache update completed");
+          Logger.info("Initial cache update completed");
         } catch (err) {
-          console.error("Error during initial cache update:", err);
-          console.error("Error stack:", err.stack);
+          Logger.error("Error during initial cache update:", err);
+          Logger.error("Error stack:", err.stack);
         }
       });
     }
   } catch (err) {
-    console.error("Error during database initialization:", err);
+    Logger.error("Error during database initialization:", err);
   }
 });
 
@@ -120,41 +137,72 @@ app.use("/admin", adminRoutes);
 app.use("/match", matchRoutes);
 app.use("/member", memberRoutes);
 
-// Debug: Log all incoming requests to API routes
+// Debug: Log all incoming requests to API routes (only in development)
 app.use((req, res, next) => {
-  if (req.path.startsWith("/admin") || 
-      req.path.startsWith("/match") || 
-      req.path.startsWith("/member")) {
-    console.log(`[API Request] ${req.method} ${req.path}`);
+  if (process.env.NODE_ENV === "development") {
+    if (req.path.startsWith("/admin") || 
+        req.path.startsWith("/match") || 
+        req.path.startsWith("/member")) {
+      Logger.debug(`[API Request] ${req.method} ${req.path}`);
+    }
   }
   next();
 });
 
-// Serve static files from the React app
-app.use(express.static(path.join(__dirname, "../frontend/build")));
+// Serve static files from the React app (only if frontend build exists - not in Docker with nginx)
+const frontendBuildPath = path.join(__dirname, "../frontend/build");
+const indexPath = path.join(frontendBuildPath, "index.html");
 
-// The "catchall" handler: for any request that doesn't
-// match one above, send back React's index.html file.
-// Only match non-API routes to avoid interfering with API endpoints
-app.get("*", (req, res, next) => {
-  // Skip API routes - they should have been handled above
-  // If we reach here and it's an API route, it means the route wasn't found
-  if (req.path.startsWith("/admin") || 
-      req.path.startsWith("/match") || 
-      req.path.startsWith("/member")) {
-    // API route not found - return 404 JSON instead of HTML
-    return res.status(404).json({ error: "API endpoint not found", path: req.path });
-  }
-  
-  // Only serve index.html for frontend routes
-  const indexPath = path.join(__dirname, "../frontend/build/index.html");
-  res.sendFile(indexPath, (err) => {
-    if (err) {
-      console.error("Error sending index.html:", err);
-      res.status(404).json({ error: "Not found" });
+// Only serve static files if frontend build directory exists
+if (fs.existsSync(frontendBuildPath)) {
+  app.use(express.static(frontendBuildPath));
+
+  // The "catchall" handler: for any request that doesn't
+  // match one above, send back React's index.html file.
+  // Only match non-API routes to avoid interfering with API endpoints
+  app.get("*", (req, res, next) => {
+    // Skip API routes - they should have been handled above
+    // If we reach here and it's an API route, it means the route wasn't found
+    if (req.path.startsWith("/admin") || 
+        req.path.startsWith("/match") || 
+        req.path.startsWith("/member")) {
+      // API route not found - return 404 JSON instead of HTML
+      return res.status(404).json({ error: "API endpoint not found", path: req.path });
+    }
+    
+    // Only serve index.html for frontend routes (if file exists)
+    if (fs.existsSync(indexPath)) {
+      res.sendFile(indexPath, (err) => {
+        if (err) {
+          Logger.error("Error sending index.html:", err);
+          res.status(404).json({ error: "Not found" });
+        }
+      });
+    } else {
+      // Frontend not built or not available - return 404
+      res.status(404).json({ 
+        error: "Frontend not available", 
+        message: "Frontend build directory not found. In Docker, nginx serves the frontend." 
+      });
     }
   });
-});
+} else {
+  // Frontend build doesn't exist (Docker scenario with nginx)
+  // Only handle API routes
+  app.get("*", (req, res) => {
+    if (req.path.startsWith("/admin") || 
+        req.path.startsWith("/match") || 
+        req.path.startsWith("/member")) {
+      // API route not found
+      return res.status(404).json({ error: "API endpoint not found", path: req.path });
+    }
+    // Non-API route - let nginx handle it (in Docker) or return 404
+    res.status(404).json({ 
+      error: "Not found", 
+      message: "This endpoint is handled by nginx or frontend server" 
+    });
+  });
+}
 
 // Global error handling middleware
 app.use(async (err, req, res, next) => {
@@ -166,7 +214,7 @@ app.use(async (err, req, res, next) => {
     body: req.body,
     params: req.params,
   });
-  console.error("Global Error Handler:", err);
+  Logger.error("Global Error Handler:", err);
   res.status(500).json({ message: "Internal Server Error" });
 });
 
@@ -174,47 +222,52 @@ const MatchService = require("./services/match.service");
 const { Cache } = require("./models/cache.model");
 const { updateHKMatches } = require("./getAPIFixtureId");
 
-// Update cached match data every 60 seconds
+// Update cached match data every 160 seconds
 if (process.env.FETCHER) {
   const updateCache = async () => {
     try {
-      console.log("Updating cached match data...");
+      Logger.info("Updating cached match data...");
       const data = await MatchService.getMatchData();
-      console.log(`Fetched ${data.length} matches`);
+      Logger.info(`Fetched ${data.length} matches`);
       if (data.length > 0) {
-        await Cache.findOneAndUpdate(
-          { key: "matchData" },
-          { data, updatedAt: new Date() },
-          { upsert: true, new: true },
-        );
-        console.log("Cache updated successfully with", data.length, "matches");
+        const cacheKey = "matchData";
+        // Try Redis first, fallback to MongoDB
+        const redisSet = await RedisCache.set(cacheKey, data, 300); // 5 minutes TTL
+        
+        if (!redisSet) {
+          // Fallback to MongoDB cache
+          await Cache.findOneAndUpdate(
+            { key: cacheKey },
+            { data, updatedAt: new Date() },
+            { upsert: true, new: true },
+          );
+        }
+        Logger.info("Cache updated successfully with", data.length, "matches");
       } else {
-        console.warn("No match data to cache - data array is empty");
+        Logger.warn("No match data to cache - data array is empty");
       }
     } catch (err) {
-      console.error("Error updating cached match data:", err);
-      console.error("Error stack:", err.stack);
+      Logger.error("Error updating cached match data:", err);
+      Logger.error("Error stack:", err.stack);
     }
   };
 
   // Update HK matches every 2 minutes
   const updateHKCache = async () => {
     try {
-      console.log("Updating HK matches cache...");
+      Logger.info("Updating HK matches cache...");
       await updateHKMatches();
     } catch (err) {
-      console.error("Error updating HK matches cache:", err);
+      Logger.error("Error updating HK matches cache:", err);
     }
   };
 
-  // updateCache();
-  // updateHKCache();
-  console.log("Fetcher mode enabled");
+  Logger.info("Fetcher mode enabled");
   setInterval(updateCache, 160000);
   setInterval(updateHKCache, 120000);
 }
 
 
 app.listen(port, () => {
-  console.log(`Server is running on port: ${port}`);
+  Logger.info(`Server is running on port: ${port}`);
 });

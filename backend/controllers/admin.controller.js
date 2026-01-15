@@ -7,6 +7,7 @@ const { uniqueNamesGenerator, adjectives, colors, animals } = require(
 );
 const SessionService = require("../services/session.service");
 const mongoose = require("mongoose");
+const Logger = require("../utils/logger");
 
 /**
  * @class AdminController
@@ -46,17 +47,17 @@ class AdminController {
         }
       }
 
-      console.log("Comparing password for admin:", admin.username);
+      Logger.debug("Comparing password for admin:", admin.username);
       
       const isPasswordValid = await bcrypt.compare(password, admin.password);
       if (!isPasswordValid) {
-        console.log("Password comparison failed for admin:", admin.username);
+        Logger.debug("Password comparison failed for admin:", admin.username);
         return res.status(401).json({ 
           message: "Invalid password",
           code: "INVALID_CREDENTIALS" 
         });
       }
-      console.log("Password comparison succeeded for admin:", admin.username);
+      Logger.debug("Password comparison succeeded for admin:", admin.username);
 
       // Generate JWT token
       const token = jwt.sign(
@@ -177,20 +178,29 @@ class AdminController {
       const { username, password, price, date } = req.body;
       const admin = req.admin;
 
+      // Validate required fields
+      if (!username || !password) {
+        return res.status(400).json({ message: "Username and password are required" });
+      }
+
+      if (!date) {
+        return res.status(400).json({ message: "Date is required" });
+      }
+
       const existingMember = await Member.findOne({ username });
 
       if (existingMember) {
         return res.status(400).json({ message: "Member already exists" });
       }
 
-      if (!date) {
-        return res.status(400).json({ message: "Date is required" });
-      }
-        // Generate unique slug
-        const generateUniqueSlug = async () => {
+      // Generate unique slug
+      const generateUniqueSlug = async () => {
         let slug;
         let exists = true;
-        while (exists) {
+        let attempts = 0;
+        const maxAttempts = 10;
+        
+        while (exists && attempts < maxAttempts) {
           slug = uniqueNamesGenerator({
             dictionaries: [adjectives, colors, animals],
             separator: "-",
@@ -199,23 +209,57 @@ class AdminController {
           });
           const member = await Member.findOne({ slug });
           if (!member) exists = false;
+          attempts++;
         }
+        
+        if (exists) {
+          throw new Error("Failed to generate unique slug after multiple attempts");
+        }
+        
         return slug;
       };
 
       const slug = await generateUniqueSlug();
+      
+      // Hash the password
+      const hashedPassword = await bcrypt.hash(password, 10);
+      
+      // Parse the date - handle both string and Date object
+      let parsedDate;
+      if (date instanceof Date) {
+        parsedDate = date;
+      } else if (typeof date === 'string') {
+        parsedDate = new Date(date);
+        if (isNaN(parsedDate.getTime())) {
+          return res.status(400).json({ message: "Invalid date format" });
+        }
+      } else {
+        return res.status(400).json({ message: "Invalid date format" });
+      }
+
       const newMember = new Member({
         username,
-        password: password,
-        price,
-        date,
+        password: hashedPassword,
+        price: price ? Number(price) : undefined,
+        date: parsedDate,
         slug,
-        createdBy: admin.id,
+        createdBy: admin._id, // Use _id for MongoDB ObjectId reference
       });
 
       await newMember.save();
+      
+      // Invalidate Redis cache for members (if Redis is available)
+      try {
+        const RedisCache = require("../utils/redis").RedisCache;
+        await RedisCache.deletePattern("members:*");
+      } catch (cacheError) {
+        Logger.warn("Failed to invalidate Redis cache:", cacheError);
+        // Continue even if cache invalidation fails
+      }
+      
       res.status(201).json({ message: "Member registered successfully" });
     } catch (error) {
+      Logger.error("Error registering member:", error);
       res.status(500).json({
         message: "Error registering member",
         error: error.message,
@@ -224,7 +268,7 @@ class AdminController {
   }
 
   /**
-   * Gets all members.
+   * Gets all members with pagination support.
    * @param {object} req - The request object.
    * @param {object} res - The response object.
    * @returns {Promise<void>}
@@ -233,19 +277,36 @@ class AdminController {
    */
   static async getAllMembers(req, res) {
     try {
-      console.log("AdminController: getAllMembers - fetching members");
       const isAdmin = req.admin.role === "main";
       let query = {};
       if (!isAdmin) {
-        query = { createdBy: req.admin.id };
+        query = { createdBy: req.admin._id };
       }
-      const members = await Member.find(query).populate(
-        "createdBy",
-        "username role",
-      );
+
+      // Pagination parameters
+      const page = parseInt(req.query.page) || 1;
+      const limit = parseInt(req.query.limit) || 50;
+      const skip = (page - 1) * limit;
+
+      // Sort parameter (default: createdAt descending)
+      const sortBy = req.query.sortBy || 'createdAt';
+      const sortOrder = req.query.sortOrder === 'asc' ? 1 : -1;
+      const sort = { [sortBy]: sortOrder };
+
+      // Count total documents for pagination metadata
+      const total = await Member.countDocuments(query);
+
+      // Fetch members with pagination, lean() for better performance
+      const members = await Member.find(query)
+        .populate("createdBy", "username role")
+        .sort(sort)
+        .skip(skip)
+        .limit(limit)
+        .lean(); // Use lean() for better performance when we don't need full Mongoose documents
+
       const formattedMembers = members.map((member) => {
         const formattedMember = {
-          ...member.toObject(),
+          ...member,
         };
         if (member.createdBy) {
           formattedMember.createdBy = {
@@ -257,7 +318,18 @@ class AdminController {
         }
         return formattedMember;
       });
-      res.status(200).json(formattedMembers);
+
+      res.status(200).json({
+        data: formattedMembers,
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+          hasNext: page * limit < total,
+          hasPrev: page > 1,
+        },
+      });
     } catch (error) {
       res.status(500).json({
         message: "Error fetching members",
@@ -276,8 +348,8 @@ class AdminController {
    */
   static async getAllSubAdmins(req, res) {
     try {
-      console.log("AdminController: getAllSubAdmins - fetching sub-admins");
-      const subAdmins = await Admin.find({ role: "sub" });
+      Logger.debug("AdminController: getAllSubAdmins - fetching sub-admins");
+      const subAdmins = await Admin.find({ role: "sub" }).lean();
       res.status(200).json(subAdmins);
     } catch (error) {
       res.status(500).json({
@@ -454,7 +526,7 @@ class AdminController {
       if (updatedMember.ipAddresses.length >= 6) {
         updatedMember.ipAddresses = [];
         await updatedMember.save();
-        console.log(`IP addresses cleared for member ${updatedMember.username} after unblocking.`);
+        Logger.info(`IP addresses cleared for member ${updatedMember.username} after unblocking.`);
       }
 
       res.status(200).json({
@@ -462,7 +534,7 @@ class AdminController {
         updatedMember,
       });
     } catch (error) {
-      console.error("Error unblocking member:", error);
+      Logger.error("Error unblocking member:", error);
       res.status(500).json({
         message: "Error unblocking member",
         error: error.message,
@@ -567,7 +639,7 @@ class AdminController {
         immuneToIPBan: member.immuneToIPBan
       });
     } catch (error) {
-      console.error("Error toggling immunity status:", error);
+      Logger.error("Error toggling immunity status:", error);
       res.status(500).json({
         message: "Error updating immunity status",
         error: error.message,

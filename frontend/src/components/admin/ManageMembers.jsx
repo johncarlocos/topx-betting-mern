@@ -176,7 +176,16 @@ const ManageMembers = () => {
 
   useEffect(() => {
     if (members) {
-      setMemberList(members);
+      // Handle both old format (array) and new format (object with data and pagination)
+      if (Array.isArray(members)) {
+        setMemberList(members);
+      } else if (members.data && Array.isArray(members.data)) {
+        setMemberList(members.data);
+      } else {
+        setMemberList([]);
+      }
+    } else {
+      setMemberList([]);
     }
   }, [members]);
 
@@ -268,17 +277,23 @@ const ManageMembers = () => {
   });
 
   const handleAddMember = async () => {
+    if (!usernameRef.current?.value || !passwordRef.current?.value) {
+      setDialogError(t("用戶名和密碼是必填欄位"));
+      return;
+    }
+    
+    if (!dateRef.current?.value) {
+      setDialogError(t("日期是必填欄位"));
+      return;
+    }
+    
     const newMember = {
-      username: usernameRef.current.value,
+      username: usernameRef.current.value.trim(),
       password: passwordRef.current.value,
-      price: priceRef.current.value,
-      date: dateRef.current.value ? new Date(dateRef.current.value) : null,
-      createdBy: userRole === "main" ? "main" : "sub",
+      price: priceRef.current.value ? Number(priceRef.current.value) : undefined,
+      date: dateRef.current.value, // Send as string, backend will parse it
     };
-     if (!newMember.date) {
-       setDialogError(t("日期是必填欄位"));
-       return;
-     }
+    
     addMutation.mutate(newMember);
   };
 

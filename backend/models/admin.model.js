@@ -17,4 +17,12 @@ const AdminSchema = new Schema({
 
 const Admin = mongoose.model("Admin", AdminSchema);
 
+// Create indexes for performance optimization
+// Index on role for filtering by role
+AdminSchema.index({ role: 1 });
+// Index on username for faster lookups (already unique, but explicit is good)
+AdminSchema.index({ username: 1 });
+// Index on createdAt for sorting
+AdminSchema.index({ createdAt: -1 });
+
 module.exports = { Admin };

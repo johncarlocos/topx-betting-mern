@@ -1,52 +1,128 @@
-version: "3.8"
 services:
+  # Nginx Reverse Proxy
   nginx:
-    image: nginx:latest
+    image: nginx:alpine
+    container_name: topx-nginx-dev
     ports:
       - "6465:80"
     volumes:
-      - ./nginx.dev.conf:/etc/nginx/conf.d/default.conf
-      - ./frontend/build:/usr/share/nginx/html
+      - ./nginx.dev.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./frontend/build:/usr/share/nginx/html:ro
     depends_on:
       - backend
-      - mongodb
+    networks:
+      - app-network
+    restart: unless-stopped
 
+  # Backend API Server
   backend:
-    image: oven/bun
+    image: node:18-alpine
+    container_name: topx-backend-dev
     working_dir: /app
     volumes:
-      - ./:/app
-    command: bun run backend/index.js
+      - ./backend:/app/backend
+      - ./backend/node_modules:/app/backend/node_modules
+      - /app/backend/logs
+    command: sh -c "cd backend && npm install && npm start"
     restart: unless-stopped
     environment:
-      - ATLAS_URI=mongodb://root:example@mongodb:27017/betting-china?authSource=admin
+      # MongoDB Configuration
+      - ATLAS_URI=${ATLAS_URI:-mongodb://root:example@mongodb:27017/betting-china?authSource=admin}
+      
+      # Redis Configuration
+      - REDIS_HOST=${REDIS_HOST:-redis}
+      - REDIS_PORT=${REDIS_PORT:-6379}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
+      
+      # Server Configuration
+      - PORT=${PORT:-5000}
+      - NODE_ENV=${NODE_ENV:-development}
+      
+      # Security Configuration
+      - JWT_SECRET=${JWT_SECRET:-local-development-secret-key-change-in-production}
+      
+      # Feature Flags
+      - FETCHER=${FETCHER:-false}
     networks:
-      default:
-        aliases:
-          - backend
+      - app-network
     depends_on:
-      - mongodb
+      mongodb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5000/api/match/match-data"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
+  # MongoDB Database
   mongodb:
-    image: mongo:latest
+    image: mongo:7
+    container_name: topx-mongodb-dev
     environment:
       MONGO_INITDB_ROOT_USERNAME: root
       MONGO_INITDB_ROOT_PASSWORD: example
     volumes:
       - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    ports:
+      - "27017:27017"  # Expose for local connection
 
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: topx-redis-dev
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    volumes:
+      - redis_data:/data
+    networks:
+      - app-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    ports:
+      - "6379:6379"  # Expose for local connection
+
+  # MongoDB Web UI (Development Only)
   mongo-express:
-    image: mongo-express
+    image: mongo-express:latest
+    container_name: topx-mongo-express-dev
     restart: always
     ports:
-      - "127.0.0.1:4647:8081"  # Different port from production
+      - "127.0.0.1:4647:8081"  # Only accessible from localhost
     environment:
       ME_CONFIG_MONGODB_ADMINUSERNAME: root
       ME_CONFIG_MONGODB_ADMINPASSWORD: example
       ME_CONFIG_MONGODB_URL: mongodb://root:example@mongodb:27017/
       ME_CONFIG_BASICAUTH: false
+    networks:
+      - app-network
     depends_on:
       - mongodb
 
+networks:
+  app-network:
+    driver: bridge
+
 volumes:
   mongodb_data:
+    name: topx_mongodb_data_dev
+  mongodb_config:
+    name: topx_mongodb_config_dev
+  redis_data:
+    name: topx_redis_data_dev

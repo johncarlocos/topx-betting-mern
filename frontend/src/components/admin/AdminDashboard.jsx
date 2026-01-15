@@ -28,7 +28,16 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     if (members) {
-      setMemberCount(members.length);
+      // Handle both old format (array) and new format (object with data and pagination)
+      if (Array.isArray(members)) {
+        setMemberCount(members.length);
+      } else if (members.data && Array.isArray(members.data)) {
+        setMemberCount(members.pagination?.total || members.data.length);
+      } else {
+        setMemberCount(0);
+      }
+    } else {
+      setMemberCount(0);
     }
   }, [members]);
 

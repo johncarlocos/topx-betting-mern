@@ -3,6 +3,8 @@ const { cachedHandleResult } = require("../data/cached-handleresult");
 const { Match } = require("../models/match.model");
 const { Cache } = require("../models/cache.model");
 const { handleResult } = require("../handleResult.js");
+const { RedisCache } = require("../utils/redis");
+const Logger = require("../utils/logger");
 
 /**
  * @class MatchService
@@ -16,42 +18,48 @@ class MatchService {
    * @async
    */
   static async getMatchData() {
-    console.time("getMatchData"); // Start timing 전체 getMatchData 함수
+    Logger.time("getMatchData");
 
-    console.time("getHKMatches"); // Start timing getHKMatches call
+    Logger.time("getHKMatches");
     const matches = await getHKMatches();
-    console.timeEnd("getHKMatches"); // End timing getHKMatches call
+    Logger.timeEnd("getHKMatches");
 
-    console.time("cacheCheckPromises"); // Start timing cache check promises
-    const cacheCheckPromises = matches.map((match) =>
-      Match.findOne({
-        id: match.frontEndId,
-        "cachedData.expiresAt": { $gt: new Date() },
-      })
+    // Optimized: Batch query instead of individual queries
+    Logger.time("cacheCheckBatch");
+    const matchIds = matches.map(m => m.frontEndId);
+    const now = new Date();
+    
+    // Single batch query with $in operator - much faster than N queries
+    const cachedMatchesArray = await Match.find({
+      id: { $in: matchIds },
+      "cachedData.expiresAt": { $gt: now },
+    }).select("id cachedData").lean();
+    
+    // Create a Map for O(1) lookup
+    const cachedMatchesMap = new Map(
+      cachedMatchesArray.map(m => [m.id, m])
     );
-    const cachedMatches = await Promise.all(cacheCheckPromises);
-    console.timeEnd("cacheCheckPromises"); // End timing cache check promises
+    
+    Logger.timeEnd("cacheCheckBatch");
 
-    console.time("matchDatasProcessing"); // Start timing match data processing
-    const matchDatas = await Promise.all(matches.map(async (match, index) => {
-      console.time(`processMatch-${match.frontEndId}`); // Start timing individual match processing
-      if (cachedMatches[index]?.cachedData) {
-        console.timeEnd(`processMatch-${match.frontEndId}`); // End timing individual match processing (cached)
-        // ... cached data handling ...
+    Logger.time("matchDatasProcessing");
+    const matchDatas = await Promise.all(matches.map(async (match) => {
+      const cachedMatch = cachedMatchesMap.get(match.frontEndId);
+      
+      if (cachedMatch?.cachedData) {
+        // Return cached data immediately
         return {
           time: match.kickOffTime,
           id: match.frontEndId,
           homeTeamName: match.homeTeam.name_ch,
           awayTeamName: match.awayTeam.name_ch,
-          homeWinRate: cachedMatches[index].cachedData.homeWinRate,
-          awayWinRate: cachedMatches[index].cachedData.awayWinRate,
+          homeWinRate: cachedMatch.cachedData.homeWinRate,
+          awayWinRate: cachedMatch.cachedData.awayWinRate,
         };
       }
 
       try {
-        console.time(`cachedHandleResult-${match.frontEndId}`); // Start timing cachedHandleResult
         const resultData = await cachedHandleResult(match.frontEndId);
-        console.timeEnd(`cachedHandleResult-${match.frontEndId}`); // End timing cachedHandleResult
         // await Match.findOneAndUpdate(
         //   { id: match.frontEndId },
         //   {
@@ -66,7 +74,6 @@ class MatchService {
         //   { upsert: true, new: true }
         // );
 
-        console.timeEnd(`processMatch-${match.frontEndId}`); // End timing individual match processing (uncached)
         return {
           time: match.kickOffTime,
           id: match.frontEndId,
@@ -76,8 +83,7 @@ class MatchService {
           awayWinRate: resultData.awayWinRate,
         };
       } catch (error) {
-        console.error(`Error processing match ${match.frontEndId}:`, error);
-        console.timeEnd(`processMatch-${match.frontEndId}`); // End timing individual match processing (error)
+        Logger.error(`Error processing match ${match.frontEndId}:`, error);
         return {
           time: match.kickOffTime,
           id: match.frontEndId,
@@ -88,17 +94,18 @@ class MatchService {
         };
       }
     }));
-    console.timeEnd("matchDatasProcessing"); // End timing match data processing
+    Logger.timeEnd("matchDatasProcessing");
 
     // Filter out past matches (matches where kickOffTime has passed)
-    const now = new Date();
+    // Reuse the now variable from earlier in the function (or get current time if needed)
+    const currentTime = new Date();
     const filteredMatchDatas = matchDatas.filter((match) => {
       if (!match.time) return false;
       const kickOffTime = new Date(match.time);
-      return kickOffTime >= now;
+      return kickOffTime >= currentTime;
     });
 
-    console.timeEnd("getMatchData"); // End timing 전체 getMatchData 함수
+    Logger.timeEnd("getMatchData");
     return filteredMatchDatas;
   }
 
@@ -110,32 +117,27 @@ class MatchService {
    * @async
    */
   static async getMatchResult(id) {
-    const resultData = handleResult(id);
-    let match = await Match.findOne({ id: id });
+    const resultData = await handleResult(id);
+    let match = await Match.findOne({ id: id }).lean();
 
     if (!match) {
-      console.log("Creating new match");
+      Logger.debug("Creating new match:", id);
       match = new Match({
         id: id,
-        time: new Date(), // Placeholder, adjust as needed
-        ...(await resultData),
+        time: new Date(),
+        ...resultData,
       });
       await match.save();
     } else {
-      // Update existing match data
-      new Promise(async (resolve, reject) => {
-        try {
-          console.log("Updating existing match");
-          Object.assign(match, {
-            ...(await resultData),
-            time: resultData.time ?? match.time ?? new Date(),
-          });
-          await match.save();
-          resolve(resultData);
-        } catch (error) {
-          reject(error);
-        }
-      });
+      // Update existing match data asynchronously (fire and forget)
+      Match.findOneAndUpdate(
+        { id },
+        {
+          ...resultData,
+          time: resultData.time ?? match.time ?? new Date(),
+        },
+        { upsert: true, new: true }
+      ).catch(err => Logger.error(`Error updating match ${id}:`, err));
     }
 
     return resultData;

@@ -9,7 +9,23 @@ import i18n from "./i18n";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { createTheme, ThemeProvider } from "@mui/material/styles";
 
-const queryClient = new QueryClient();
+// Optimized QueryClient configuration for production
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5000, // 5 seconds - data is considered fresh for 5 seconds
+      cacheTime: 300000, // 5 minutes - cached data stays in memory for 5 minutes
+      refetchOnWindowFocus: false, // Don't refetch on window focus for better UX
+      refetchOnMount: true, // Refetch when component mounts
+      retry: 1, // Retry failed requests once
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000), // Exponential backoff
+    },
+    mutations: {
+      retry: 1,
+      retryDelay: 1000,
+    },
+  },
+});
 
 const darkTheme = createTheme({
   palette: {

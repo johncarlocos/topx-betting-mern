@@ -1,91 +1,123 @@
-import React, { Fragment } from "react";
+import React, { Fragment, Suspense, lazy } from "react";
 import { Route, Routes } from "react-router-dom";
-import Landing from "../views/Landing";
-import Login from "../components/form/Login";
-import ViewMatches from "../components/matches/ViewMatches";
-import MatchResult from "../components/matches/MatchResult";
-import NotFound from "../views/NotFound";
-import DeveloperPage from "../components/developer/DeveloperPage";
-import AdminLogin from "../components/admin/AdminLogin";
-import SubAdminLogin from "../components/admin/SubAdminLogin";
-import AdminDashboard from "../components/admin/AdminDashboard";
 import MainLayout from "../layouts/MainLayout";
 import AdminLayout from "../layouts/AdminLayout";
-import ManageMembers from "../components/admin/ManageMembers";
-import ManageAdmins from "../components/admin/ManageAdmins";
+
+// Lazy load components for code splitting and better performance
+const Landing = lazy(() => import("../views/Landing"));
+const Login = lazy(() => import("../components/form/Login"));
+const ViewMatches = lazy(() => import("../components/matches/ViewMatches"));
+const MatchResult = lazy(() => import("../components/matches/MatchResult"));
+const NotFound = lazy(() => import("../views/NotFound"));
+const DeveloperPage = lazy(() => import("../components/developer/DeveloperPage"));
+const AdminLogin = lazy(() => import("../components/admin/AdminLogin"));
+const SubAdminLogin = lazy(() => import("../components/admin/SubAdminLogin"));
+const AdminDashboard = lazy(() => import("../components/admin/AdminDashboard"));
+const ManageMembers = lazy(() => import("../components/admin/ManageMembers"));
+const ManageAdmins = lazy(() => import("../components/admin/ManageAdmins"));
+
+// Loading component
+const LoadingFallback = () => (
+  <div style={{ 
+    display: 'flex', 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    height: '100vh',
+    background: '#0a0a0a',
+    color: '#32cd32'
+  }}>
+    Loading...
+  </div>
+);
 
 const AppRouter = () => {
   return (
     <Fragment>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/admin/login" element={<AdminLogin />} />
-        <Route path="/subadmin/login" element={<SubAdminLogin />} />
-        <Route
-          path="*"
-          element={
-            <MainLayout>
-              <Routes>
-                <Route path="/" element={<Landing />} />
-                <Route path="/admin" element={<Landing />} />
-                <Route path="/subadmin" element={<Landing />} />
-                <Route path="/view-matches" element={<ViewMatches />} />
-                <Route path="/match-result/:id" element={<MatchResult />} />
-                <Route path="/developer/language" element={<DeveloperPage />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </MainLayout>
-          }
-        />
-        <Route
-          path="/admin"
-          element={
-            <AdminLayout>
-              <AdminDashboard />
-            </AdminLayout>
-          }
-        />
-        <Route
-          path="/admin/manage-members"
-          element={
-            <AdminLayout>
-              <ManageMembers />
-            </AdminLayout>
-          }
-        />
-        <Route
-          path="/admin/manage-admins"
-          element={
-            <AdminLayout>
-              <ManageAdmins />
-            </AdminLayout>
-          }
-        />
-        <Route
-          path="/subadmin"
-          element={
-            <AdminLayout>
-              <AdminDashboard />
-            </AdminLayout>
-          }
-        />
-        <Route
-          path="/subadmin/manage-members"
-          element={
-            <AdminLayout>
-              <ManageMembers />
-            </AdminLayout>
-          }
-        />
-        <Route
-          path="/subadmin/manage-admins"
-          element={
-            <AdminLayout>
-              <ManageAdmins />
-            </AdminLayout>
-          }
-        />
-      </Routes>
+      <Suspense fallback={<LoadingFallback />}>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/subadmin/login" element={<SubAdminLogin />} />
+          <Route
+            path="*"
+            element={
+              <MainLayout>
+                <Suspense fallback={<LoadingFallback />}>
+                  <Routes>
+                    <Route path="/" element={<Landing />} />
+                    <Route path="/admin" element={<Landing />} />
+                    <Route path="/subadmin" element={<Landing />} />
+                    <Route path="/view-matches" element={<ViewMatches />} />
+                    <Route path="/match-result/:id" element={<MatchResult />} />
+                    <Route path="/developer/language" element={<DeveloperPage />} />
+                    <Route path="*" element={<NotFound />} />
+                  </Routes>
+                </Suspense>
+              </MainLayout>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <AdminLayout>
+                <Suspense fallback={<LoadingFallback />}>
+                  <AdminDashboard />
+                </Suspense>
+              </AdminLayout>
+            }
+          />
+          <Route
+            path="/admin/manage-members"
+            element={
+              <AdminLayout>
+                <Suspense fallback={<LoadingFallback />}>
+                  <ManageMembers />
+                </Suspense>
+              </AdminLayout>
+            }
+          />
+          <Route
+            path="/admin/manage-admins"
+            element={
+              <AdminLayout>
+                <Suspense fallback={<LoadingFallback />}>
+                  <ManageAdmins />
+                </Suspense>
+              </AdminLayout>
+            }
+          />
+          <Route
+            path="/subadmin"
+            element={
+              <AdminLayout>
+                <Suspense fallback={<LoadingFallback />}>
+                  <AdminDashboard />
+                </Suspense>
+              </AdminLayout>
+            }
+          />
+          <Route
+            path="/subadmin/manage-members"
+            element={
+              <AdminLayout>
+                <Suspense fallback={<LoadingFallback />}>
+                  <ManageMembers />
+                </Suspense>
+              </AdminLayout>
+            }
+          />
+          <Route
+            path="/subadmin/manage-admins"
+            element={
+              <AdminLayout>
+                <Suspense fallback={<LoadingFallback />}>
+                  <ManageAdmins />
+                </Suspense>
+              </AdminLayout>
+            }
+          />
+        </Routes>
+      </Suspense>
     </Fragment>
   );
 };

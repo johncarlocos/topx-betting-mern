@@ -1,8 +1,9 @@
-// const bcrypt = require("bcryptjs");
+const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const { Member } = require("../models/member.model");
 const { Admin } = require("../models/admin.model"); // Ensure Admin model is imported
 const SessionService = require("../services/session.service");
+const Logger = require("../utils/logger");
 
 /**
  * @class MemberController
@@ -21,14 +22,32 @@ class MemberController {
     try {
       const { username, password } = req.body;
       const member = await Member.findOne({ username }).select("+password");
-      console.log("Comparing password for member:", member.username);
 
       if (!member) {
         return res.status(404).json({ message: "Member not found" });
       }
 
-      if (password !== member.password) {
-        console.log("Comparing password for member:", member.username);
+      // Compare password using bcrypt (handles both hashed and plain text for backward compatibility)
+      let isPasswordValid = false;
+      
+      // Check if password is hashed (starts with $2a$, $2b$, or $2y$)
+      if (member.password.startsWith('$2a$') || member.password.startsWith('$2b$') || member.password.startsWith('$2y$')) {
+        // Password is hashed, use bcrypt.compare
+        isPasswordValid = await bcrypt.compare(password, member.password);
+      } else {
+        // Legacy plain text password (for backward compatibility with existing members)
+        isPasswordValid = password === member.password;
+        // If plain text matches, hash it for future logins
+        if (isPasswordValid) {
+          const hashedPassword = await bcrypt.hash(password, 10);
+          member.password = hashedPassword;
+          await member.save();
+          Logger.info(`Migrated password to hashed format for member: ${member.username}`);
+        }
+      }
+
+      if (!isPasswordValid) {
+        Logger.debug("Password comparison failed for member:", member.username);
         return res.status(401).json({
           message: "Invalid password",
           code: "INVALID_CREDENTIALS",
@@ -42,7 +61,7 @@ class MemberController {
       // Check IP address
       const clientIp = req.headers["x-forwarded-for"] || req.headers["x-real-ip"] ||
         req.connection.remoteAddress || req.ip;
-      console.log(
+      Logger.debug(
         `Login attempt from IP: ${clientIp} for member: ${member.username}`,
       );
 
@@ -50,7 +69,7 @@ class MemberController {
         if (member.ipAddresses.length >= 6 && !member.immuneToIPBan) {
           member.blocked = true;
           await member.save();
-          console.log(
+          Logger.warn(
             `Member ${member.username} blocked due to too many IP addresses`,
           );
           return res.status(403).json({
@@ -61,7 +80,7 @@ class MemberController {
         } else {
           member.ipAddresses.push(clientIp);
           await member.save();
-          console.log(
+          Logger.info(
             `New IP address added for member ${member.username}: ${clientIp}`,
           );
         }

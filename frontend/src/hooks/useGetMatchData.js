@@ -12,7 +12,8 @@ const useGetMatchData = () => {
         throw new Error(handleApiError(error));
       }
     },
-    staleTime: 60000, // 1 minute
+    staleTime: 10000, // 10 seconds - match data changes frequently
+    refetchInterval: 30000, // Refetch every 30 seconds for live updates
   });
 };
 
