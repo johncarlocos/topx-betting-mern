@@ -1,4 +1,5 @@
 // const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const { Member } = require("../models/member.model");
 const { Admin } = require("../models/admin.model"); // Ensure Admin model is imported
 const SessionService = require("../services/session.service");
@@ -66,19 +67,23 @@ class MemberController {
         }
       }
 
-      // Create a session (assuming SessionService.createSession exists)
-      const sessionId = await SessionService.createSession(member.id);
-
-      // Set session cookie
-      res.cookie("sessionId", sessionId, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-      });
+      // Generate JWT token
+      const token = jwt.sign(
+        { 
+          userId: member._id.toString(),
+          role: "member",
+          username: member.username,
+          slug: member.slug
+        },
+        process.env.JWT_SECRET || "your-secret-key-change-in-production",
+        { expiresIn: "24h" }
+      );
 
       res.status(200).json({
         message: "Member login successful",
+        token: token,
         slug: member.slug,
+        username: member.username,
       });
     } catch (error) {
       res.status(500).json({
@@ -98,20 +103,8 @@ class MemberController {
    */
   static async logout(req, res) {
     try {
-      const sessionId = req.cookies?.sessionId;
-
-      if (!sessionId) {
-        return res.status(400).json({ message: "No session ID provided" });
-      }
-
-      await SessionService.revokeSession(sessionId);
-
-      res.clearCookie("sessionId", {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-      });
-
+      // Token-based auth doesn't require server-side logout
+      // Token is removed from localStorage on client side
       res.status(200).json({ message: "Member logout successful" });
     } catch (error) {
       res.status(500).json({
@@ -131,29 +124,16 @@ class MemberController {
    */
   static async checkAuth(req, res) {
     try {
-      const sessionId = req.cookies?.sessionId;
-
-      if (!sessionId) {
-        return res.status(401).json({ message: "No session ID provided" });
-      }
-
-      const session = await SessionService.validateSession(sessionId);
-
-      if (!session) {
-        return res.status(401).json({ message: "Invalid session" });
-      }
-
-      const member = await Member.findById(session.userId);
-
-      if (!member) {
-        return res.status(404).json({ message: "Member not found" });
-      }
-
+      // Auth is already validated by middleware
+      const member = req.member;
       if (member.blocked) {
         return res.status(403).json({ message: "Member is blocked" });
       }
-
-      res.status(200).json({ message: "Member is authenticated" });
+      res.status(200).json({ 
+        message: "Member is authenticated",
+        slug: member.slug,
+        username: member.username,
+      });
     } catch (error) {
       res.status(500).json({
         message: "Error checking authentication",

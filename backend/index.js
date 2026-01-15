@@ -64,17 +64,17 @@ connection.once("open", async () => {
     );
 
     // Check if an admin user exists, and create one if not
-    const existingAdmin = await Admin.findOne({ username: "admin" });
+    const existingAdmin = await Admin.findOne({ username: "Admin02" });
     if (!existingAdmin) {
-      const hashedPassword = await bcrypt.hash("adminpassword", 10);
+      const hashedPassword = await bcrypt.hash("60160849", 10);
       const newAdmin = new Admin({
-        username: "admin",
+        username: "Admin02",
         password: hashedPassword,
         role: "main",
       });
       await newAdmin.save();
       await TelemetryService.log("info", "Default admin user created.");
-      console.log("Default admin user created.");
+      console.log("Default admin user created with username: Admin02");
     } else {
       console.log("Default admin user already exists.");
     }

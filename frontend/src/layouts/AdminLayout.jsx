@@ -46,57 +46,57 @@ const AdminLayout = ({ children }) => {
 
   // Check authentication status on mount
   useEffect(() => {
-    const checkAuth = async (retryCount = 0) => {
+    const checkAuth = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        // No token, redirect to login
+        const currentPath = location.pathname;
+        if (currentPath.startsWith("/admin") || currentPath.startsWith("/subadmin")) {
+          logout();
+          if (currentPath.startsWith("/admin")) {
+            navigate("/admin/login", { replace: true });
+          } else {
+            navigate("/subadmin/login", { replace: true });
+          }
+        }
+        setIsCheckingAuth(false);
+        return;
+      }
+
       try {
         const response = await api.get("/admin/check-auth");
         if (response.status === 200 && response.data.role) {
-          // Session is valid, restore auth state
-          login(response.data.role);
+          // Token is valid, restore auth state
+          login(response.data.role, token, response.data.username);
           setIsCheckingAuth(false);
         } else {
-          // No role in response, invalid session
+          // Invalid response
           throw new Error("Invalid session response");
         }
       } catch (error) {
         console.error("Admin auth check failed:", error, error.response?.status);
-        
-        // If we have Zustand state saying we're authenticated, trust it initially
-        // (might be a timing issue with cookie after login)
-        if (isAuthenticated && (userRole === "main" || userRole === "sub")) {
-          // Trust Zustand state if we're authenticated - user just logged in
-          // Retry the check once after a short delay to verify cookie is working
-          if (retryCount < 1) {
-            setTimeout(() => checkAuth(retryCount + 1), 300);
-            return;
+        // Token invalid or expired, clear it and redirect
+        localStorage.removeItem("token");
+        logout();
+        const currentPath = location.pathname;
+        if (currentPath.startsWith("/admin") || currentPath.startsWith("/subadmin")) {
+          if (currentPath.startsWith("/admin")) {
+            navigate("/admin/login", { replace: true });
+          } else {
+            navigate("/subadmin/login", { replace: true });
           }
-          // If retry also fails but we have Zustand state, still trust it
-          setIsCheckingAuth(false);
-        } else {
-          // Not authenticated in Zustand and cookie check failed
-          // Only redirect if we're actually on an admin page
-          const currentPath = location.pathname;
-          if (currentPath.startsWith("/admin") || currentPath.startsWith("/subadmin")) {
-            // Clear any stale auth state
-            logout();
-            if (currentPath.startsWith("/admin")) {
-              navigate("/admin/login", { replace: true });
-            } else {
-              navigate("/subadmin/login", { replace: true });
-            }
-          }
-          setIsCheckingAuth(false);
         }
+        setIsCheckingAuth(false);
       }
     };
 
-    // If already authenticated in Zustand, still verify with server (but trust Zustand if check fails)
-    // This handles both cases: fresh login (trust Zustand) and page refresh (verify cookie)
+    // Only check auth if not on login page
     if (!location.pathname.includes("/login")) {
       checkAuth();
     } else {
       setIsCheckingAuth(false);
     }
-  }, []); // Only run on mount
+  }, [location.pathname, login, logout, navigate]); // Run when pathname changes
 
   useEffect(() => {
     if (isAuthenticated && !isCheckingAuth) {
@@ -140,7 +140,20 @@ const AdminLayout = ({ children }) => {
 
   // Redirect if not authenticated after checking
   useEffect(() => {
-    if (!isCheckingAuth && (!isAuthenticated || userRole === "member")) {
+    // Don't redirect if we're still checking auth
+    if (isCheckingAuth) {
+      return;
+    }
+
+    // Check if we have a token - if we do, auth check is handling it
+    const token = localStorage.getItem("token");
+    if (token) {
+      // We have a token, let the auth check handle authentication
+      return;
+    }
+
+    // No token and not authenticated, redirect to login
+    if (!isAuthenticated || userRole === "member") {
       const currentPath = location.pathname;
       if (currentPath.startsWith("/admin")) {
         navigate("/admin/login", { replace: true });
@@ -157,8 +170,15 @@ const AdminLayout = ({ children }) => {
     return null; // or a loading spinner
   }
 
-  // Don't render if not authenticated (redirect will happen)
-  if (!isAuthenticated || userRole === "member") {
+  // Check if we have a token - if we do, wait for auth check to complete
+  const token = localStorage.getItem("token");
+  if (token && (!isAuthenticated || userRole === "member")) {
+    // We have a token but auth state isn't set yet, wait a bit
+    return null;
+  }
+
+  // Don't render if not authenticated and no token (redirect will happen)
+  if (!token && (!isAuthenticated || userRole === "member")) {
     return null;
   }
 

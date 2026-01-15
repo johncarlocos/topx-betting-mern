@@ -22,11 +22,11 @@ const SubAdminLoginForm = () => {
         password,
       });
 
-      if (response.status === 200) {
-        // Set auth state - cookie is already set by server response
-        login(response.data.role);
-        // Navigate immediately - cookie will be sent with next request
-        navigate("/subadmin");
+      if (response.status === 200 && response.data.token) {
+        // Save token to localStorage and set auth state
+        login(response.data.role, response.data.token, response.data.username);
+        // Navigate to subadmin dashboard
+        navigate("/subadmin", { replace: true });
       }
     } catch (err) {
       const message = handleApiError(err);

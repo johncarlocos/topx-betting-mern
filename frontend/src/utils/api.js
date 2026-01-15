@@ -1,5 +1,4 @@
 import axios from "axios";
-import Cookies from "js-cookie";
 import useAuthStore from "../store/authStore";
 
 const api = axios.create({
@@ -10,8 +9,33 @@ const api = axios.create({
   withCredentials: true,
 });
 
-// Note: Cookies are automatically sent with withCredentials: true
-// No need to manually set Cookie header
+// Add token to requests if available
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+// Handle token expiration
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401 && error.response?.data?.message === "Token expired") {
+      // Token expired, clear it and logout
+      localStorage.removeItem("token");
+      const logout = useAuthStore.getState().logout;
+      logout();
+    }
+    return Promise.reject(error);
+  }
+);
 
 // Function to handle navigation
 const handleNavigation = (navigate, userRole) => {

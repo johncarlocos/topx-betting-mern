@@ -41,8 +41,9 @@ const LoginForm = () => {
         password: data.password,
       });
 
-      if (response.status === 200) {
-        login("member", response.data.token);
+      if (response.status === 200 && response.data.token) {
+        // Save token to localStorage and set auth state
+        login("member", response.data.token, response.data.username);
         localStorage.setItem("userSlug", response.data.slug); // Save slug for later use
         navigate("/view-matches");
       }
