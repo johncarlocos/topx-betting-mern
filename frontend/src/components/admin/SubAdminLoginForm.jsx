@@ -23,8 +23,10 @@ const SubAdminLoginForm = () => {
       });
 
       if (response.status === 200) {
-        login("sub", response.data.token);
-        navigate("/");
+        // Set auth state - cookie is already set by server response
+        login(response.data.role);
+        // Navigate immediately - cookie will be sent with next request
+        navigate("/subadmin");
       }
     } catch (err) {
       const message = handleApiError(err);
