@@ -58,6 +58,119 @@ const ManageMembers = () => {
   const darkTheme = createTheme({
     palette: {
       mode: "dark",
+      primary: {
+        main: "#32cd32",
+        light: "#5cdd5c",
+        dark: "#28a428",
+      },
+      background: {
+        default: "transparent",
+        paper: "rgba(26, 31, 58, 0.8)",
+      },
+      text: {
+        primary: "rgba(255, 255, 255, 0.9)",
+        secondary: "rgba(255, 255, 255, 0.7)",
+      },
+    },
+    components: {
+      MuiButton: {
+        styleOverrides: {
+          root: {
+            borderRadius: "12px",
+            padding: "10px 24px",
+            textTransform: "none",
+            fontWeight: 600,
+            boxShadow: "0 4px 12px rgba(50, 205, 50, 0.3)",
+            transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+            "&:hover": {
+              transform: "translateY(-2px)",
+              boxShadow: "0 6px 20px rgba(50, 205, 50, 0.4)",
+            },
+          },
+          contained: {
+            background: "linear-gradient(135deg, #32cd32 0%, #28a428 100%)",
+            "&:hover": {
+              background: "linear-gradient(135deg, #28a428 0%, #32cd32 100%)",
+            },
+          },
+        },
+      },
+      MuiDialog: {
+        styleOverrides: {
+          paper: {
+            background: "rgba(26, 31, 58, 0.95)",
+            backdropFilter: "blur(20px)",
+            borderRadius: "20px",
+            border: "1px solid rgba(255, 255, 255, 0.1)",
+            boxShadow: "0 8px 32px rgba(0, 0, 0, 0.4)",
+          },
+        },
+      },
+      MuiPaper: {
+        styleOverrides: {
+          root: {
+            backgroundImage: "none",
+            backgroundColor: "rgba(26, 31, 58, 0.6)",
+            backdropFilter: "blur(10px)",
+            borderRadius: "16px",
+            border: "1px solid rgba(255, 255, 255, 0.1)",
+          },
+        },
+      },
+      MuiTableCell: {
+        styleOverrides: {
+          root: {
+            borderColor: "rgba(255, 255, 255, 0.1)",
+            color: "rgba(255, 255, 255, 0.9)",
+          },
+          head: {
+            backgroundColor: "rgba(50, 205, 50, 0.1)",
+            color: "rgba(255, 255, 255, 0.95)",
+            fontWeight: 600,
+            fontSize: "0.95rem",
+          },
+        },
+      },
+      MuiTableRow: {
+        styleOverrides: {
+          root: {
+            "&:hover": {
+              backgroundColor: "rgba(50, 205, 50, 0.08)",
+            },
+            "&:nth-of-type(even)": {
+              backgroundColor: "rgba(255, 255, 255, 0.02)",
+            },
+          },
+        },
+      },
+      MuiTextField: {
+        styleOverrides: {
+          root: {
+            "& .MuiOutlinedInput-root": {
+              borderRadius: "12px",
+              backgroundColor: "rgba(255, 255, 255, 0.05)",
+              "& fieldset": {
+                borderColor: "rgba(255, 255, 255, 0.2)",
+              },
+              "&:hover fieldset": {
+                borderColor: "rgba(50, 205, 50, 0.5)",
+              },
+              "&.Mui-focused fieldset": {
+                borderColor: "#32cd32",
+              },
+            },
+            "& .MuiInputLabel-root": {
+              color: "rgba(255, 255, 255, 0.7)",
+              "&.Mui-focused": {
+                color: "#32cd32",
+              },
+            },
+            "& .MuiInputBase-input": {
+              color: "rgba(255, 255, 255, 0.9)",
+            },
+          },
+        },
+      },
     },
   });
 
@@ -325,6 +438,12 @@ const ManageMembers = () => {
           color="primary"
           startIcon={<AddIcon />}
           onClick={handleOpenDialog}
+          sx={{
+            background: "linear-gradient(135deg, #32cd32 0%, #28a428 100%)",
+            "&:hover": {
+              background: "linear-gradient(135deg, #28a428 0%, #32cd32 100%)",
+            },
+          }}
         >
           {t("新增")}
         </Button>
@@ -336,18 +455,17 @@ const ManageMembers = () => {
         : (
           <ThemeProvider theme={darkTheme}>
             <Paper
-              style={{
-                backgroundColor: "#333",
+              sx={{
+                backgroundColor: "rgba(26, 31, 58, 0.6)",
+                backdropFilter: "blur(10px)",
                 color: "white",
-                padding: "10px",
-                margin: "0",
+                padding: "24px",
+                margin: 0,
                 width: "100%",
-                overflowX: "auto",
-                "@media (max-width: 600px)": {
-                  padding: "0px",
-                  margin: "0px",
-                  width: "100%",
-                },
+                borderRadius: "20px",
+                border: "1px solid rgba(255, 255, 255, 0.1)",
+                boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
+                overflow: "hidden",
               }}
             >
               <div style={{ overflowX: "auto" }}>
@@ -364,8 +482,22 @@ const ManageMembers = () => {
             </Paper>
           </ThemeProvider>
         )}
-      <Dialog open={openDialog} onClose={handleCloseDialog}>
-        <DialogTitle>{t("新增會員")}</DialogTitle>
+      <ThemeProvider theme={darkTheme}>
+        <Dialog 
+          open={openDialog} 
+          onClose={handleCloseDialog}
+          PaperProps={{
+            sx: {
+              background: "rgba(26, 31, 58, 0.95)",
+              backdropFilter: "blur(20px)",
+              borderRadius: "20px",
+              border: "1px solid rgba(255, 255, 255, 0.1)",
+            }
+          }}
+        >
+          <DialogTitle sx={{ color: "rgba(255, 255, 255, 0.9)", fontSize: "1.5rem", fontWeight: 600 }}>
+            {t("新增會員")}
+          </DialogTitle>
         <DialogContent
           sx={{
             padding: "20px",
@@ -428,9 +560,18 @@ const ManageMembers = () => {
       <Dialog
         open={editPriceOpen}
         onClose={handleEditPriceClose}
-        sx={{ marginTop: "20px" }}
+        PaperProps={{
+          sx: {
+            background: "rgba(26, 31, 58, 0.95)",
+            backdropFilter: "blur(20px)",
+            borderRadius: "20px",
+            border: "1px solid rgba(255, 255, 255, 0.1)",
+          }
+        }}
       >
-        <DialogTitle>{t("編輯會員")}</DialogTitle>
+        <DialogTitle sx={{ color: "rgba(255, 255, 255, 0.9)", fontSize: "1.5rem", fontWeight: 600 }}>
+          {t("編輯會員")}
+        </DialogTitle>
         <DialogContent
           sx={{
             padding: "20px",
@@ -458,9 +599,18 @@ const ManageMembers = () => {
       <Dialog
         open={editCredentialOpen}
         onClose={handleEditCredentialClose}
-        sx={{ marginTop: "20px" }}
+        PaperProps={{
+          sx: {
+            background: "rgba(26, 31, 58, 0.95)",
+            backdropFilter: "blur(20px)",
+            borderRadius: "20px",
+            border: "1px solid rgba(255, 255, 255, 0.1)",
+          }
+        }}
       >
-        <DialogTitle>{t("編輯會員")}</DialogTitle>
+        <DialogTitle sx={{ color: "rgba(255, 255, 255, 0.9)", fontSize: "1.5rem", fontWeight: 600 }}>
+          {t("編輯會員")}
+        </DialogTitle>
         <DialogContent
           sx={{
             padding: "20px",
@@ -494,10 +644,25 @@ const ManageMembers = () => {
           </Button>
         </DialogActions>
       </Dialog>
-      <Dialog open={deleteOpen} onClose={handleDeleteMemberClose}>
-        <DialogTitle>{t("刪除會員")}</DialogTitle>
+      <Dialog 
+        open={deleteOpen} 
+        onClose={handleDeleteMemberClose}
+        PaperProps={{
+          sx: {
+            background: "rgba(26, 31, 58, 0.95)",
+            backdropFilter: "blur(20px)",
+            borderRadius: "20px",
+            border: "1px solid rgba(255, 255, 255, 0.1)",
+          }
+        }}
+      >
+        <DialogTitle sx={{ color: "rgba(255, 255, 255, 0.9)", fontSize: "1.5rem", fontWeight: 600 }}>
+          {t("刪除會員")}
+        </DialogTitle>
         <DialogContent>
-          <Typography>{t("確定要刪除此會員嗎？")}</Typography>
+          <Typography sx={{ color: "rgba(255, 255, 255, 0.8)" }}>
+            {t("確定要刪除此會員嗎？")}
+          </Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleDeleteMemberClose}>{t("取消")}</Button>
@@ -510,6 +675,7 @@ const ManageMembers = () => {
           </Button>
         </DialogActions>
       </Dialog>
+      </ThemeProvider>
       <Snackbar
         open={snackbarOpen}
         autoHideDuration={3000}

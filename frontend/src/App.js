@@ -22,23 +22,42 @@ function App() {
 
   useEffect(() => {
     const checkBlockedStatus = async () => {
+      const token = localStorage.getItem("token");
       if (
-        isAuthenticated && location.pathname !== "/login" &&
+        token && location.pathname !== "/login" &&
         location.pathname !== "/admin/login" &&
-        location.pathname !== "/subadmin/login"
+        location.pathname !== "/subadmin/login" &&
+        !location.pathname.startsWith("/admin") &&
+        !location.pathname.startsWith("/subadmin")
       ) {
+        // Decode token to check if it's a member token
         try {
-          const response = await api.get("/member/check-auth");
-          if (response.status === 200) {
-            setUserRole("member");
+          const tokenParts = token.split('.');
+          if (tokenParts.length === 3) {
+            const payload = JSON.parse(atob(tokenParts[1]));
+            // Only check member auth if token role is "member"
+            if (payload.role === "member") {
+              try {
+                const response = await api.get("/member/check-auth");
+                if (response.status === 200) {
+                  setUserRole("member");
+                }
+              } catch (error) {
+                if (error.response && (error.response.status === 403 || error.response.status === 401)) {
+                  localStorage.removeItem("token");
+                  logout();
+                  navigate("/login");
+                } else {
+                  handleApiError(error, navigate);
+                }
+              }
+            }
+            // If token is admin/subadmin, don't check member auth - they can access public pages
           }
         } catch (error) {
-          if (error.response && error.response.status === 403) {
-            logout();
-            navigate("/login");
-          } else {
-            handleApiError(error, navigate);
-          }
+          // If token decode fails, it might be invalid - but don't clear it here
+          // Let the specific route handlers deal with invalid tokens
+          console.warn("Token decode error:", error);
         }
       }
     };

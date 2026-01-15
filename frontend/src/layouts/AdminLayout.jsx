@@ -46,57 +46,57 @@ const AdminLayout = ({ children }) => {
 
   // Check authentication status on mount
   useEffect(() => {
-    const checkAuth = async (retryCount = 0) => {
+    const checkAuth = async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        // No token, redirect to login
+        const currentPath = location.pathname;
+        if (currentPath.startsWith("/admin") || currentPath.startsWith("/subadmin")) {
+          logout();
+          if (currentPath.startsWith("/admin")) {
+            navigate("/admin/login", { replace: true });
+          } else {
+            navigate("/subadmin/login", { replace: true });
+          }
+        }
+        setIsCheckingAuth(false);
+        return;
+      }
+
       try {
         const response = await api.get("/admin/check-auth");
         if (response.status === 200 && response.data.role) {
-          // Session is valid, restore auth state
-          login(response.data.role);
+          // Token is valid, restore auth state
+          login(response.data.role, token, response.data.username);
           setIsCheckingAuth(false);
         } else {
-          // No role in response, invalid session
+          // Invalid response
           throw new Error("Invalid session response");
         }
       } catch (error) {
         console.error("Admin auth check failed:", error, error.response?.status);
-        
-        // If we have Zustand state saying we're authenticated, trust it initially
-        // (might be a timing issue with cookie after login)
-        if (isAuthenticated && (userRole === "main" || userRole === "sub")) {
-          // Trust Zustand state if we're authenticated - user just logged in
-          // Retry the check once after a short delay to verify cookie is working
-          if (retryCount < 1) {
-            setTimeout(() => checkAuth(retryCount + 1), 300);
-            return;
+        // Token invalid or expired, clear it and redirect
+        localStorage.removeItem("token");
+        logout();
+        const currentPath = location.pathname;
+        if (currentPath.startsWith("/admin") || currentPath.startsWith("/subadmin")) {
+          if (currentPath.startsWith("/admin")) {
+            navigate("/admin/login", { replace: true });
+          } else {
+            navigate("/subadmin/login", { replace: true });
           }
-          // If retry also fails but we have Zustand state, still trust it
-          setIsCheckingAuth(false);
-        } else {
-          // Not authenticated in Zustand and cookie check failed
-          // Only redirect if we're actually on an admin page
-          const currentPath = location.pathname;
-          if (currentPath.startsWith("/admin") || currentPath.startsWith("/subadmin")) {
-            // Clear any stale auth state
-            logout();
-            if (currentPath.startsWith("/admin")) {
-              navigate("/admin/login", { replace: true });
-            } else {
-              navigate("/subadmin/login", { replace: true });
-            }
-          }
-          setIsCheckingAuth(false);
         }
+        setIsCheckingAuth(false);
       }
     };
 
-    // If already authenticated in Zustand, still verify with server (but trust Zustand if check fails)
-    // This handles both cases: fresh login (trust Zustand) and page refresh (verify cookie)
+    // Only check auth if not on login page
     if (!location.pathname.includes("/login")) {
       checkAuth();
     } else {
       setIsCheckingAuth(false);
     }
-  }, []); // Only run on mount
+  }, [location.pathname, login, logout, navigate]); // Run when pathname changes
 
   useEffect(() => {
     if (isAuthenticated && !isCheckingAuth) {
@@ -140,7 +140,20 @@ const AdminLayout = ({ children }) => {
 
   // Redirect if not authenticated after checking
   useEffect(() => {
-    if (!isCheckingAuth && (!isAuthenticated || userRole === "member")) {
+    // Don't redirect if we're still checking auth
+    if (isCheckingAuth) {
+      return;
+    }
+
+    // Check if we have a token - if we do, auth check is handling it
+    const token = localStorage.getItem("token");
+    if (token) {
+      // We have a token, let the auth check handle authentication
+      return;
+    }
+
+    // No token and not authenticated, redirect to login
+    if (!isAuthenticated || userRole === "member") {
       const currentPath = location.pathname;
       if (currentPath.startsWith("/admin")) {
         navigate("/admin/login", { replace: true });
@@ -157,8 +170,15 @@ const AdminLayout = ({ children }) => {
     return null; // or a loading spinner
   }
 
-  // Don't render if not authenticated (redirect will happen)
-  if (!isAuthenticated || userRole === "member") {
+  // Check if we have a token - if we do, wait for auth check to complete
+  const token = localStorage.getItem("token");
+  if (token && (!isAuthenticated || userRole === "member")) {
+    // We have a token but auth state isn't set yet, wait a bit
+    return null;
+  }
+
+  // Don't render if not authenticated and no token (redirect will happen)
+  if (!token && (!isAuthenticated || userRole === "member")) {
     return null;
   }
 
@@ -190,12 +210,49 @@ const AdminLayout = ({ children }) => {
             component={Link}
             to={userRole === "sub" ? "/subadmin" : "/admin"}
             onClick={handleDrawerLinkClick}
-            sx={{ "&:hover": { backgroundColor: "#32CD32" } }}
+            selected={location.pathname === (userRole === "sub" ? "/subadmin" : "/admin")}
+            sx={{
+              borderRadius: "12px",
+              marginBottom: "8px",
+              transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+              "&:hover": {
+                backgroundColor: "rgba(50, 205, 50, 0.15)",
+                transform: "translateX(4px)",
+                "& .MuiListItemIcon-root": {
+                  color: "#32cd32",
+                },
+                "& .MuiListItemText-primary": {
+                  color: "#32cd32",
+                },
+              },
+              "&.Mui-selected": {
+                backgroundColor: "rgba(50, 205, 50, 0.2)",
+                borderLeft: "3px solid #32cd32",
+                "& .MuiListItemIcon-root": {
+                  color: "#32cd32",
+                },
+                "& .MuiListItemText-primary": {
+                  color: "#32cd32",
+                  fontWeight: 600,
+                },
+                "&:hover": {
+                  backgroundColor: "rgba(50, 205, 50, 0.25)",
+                },
+              },
+            }}
           >
             <ListItemIcon>
-              <DashboardIcon sx={{ color: "white" }} />
+              <DashboardIcon sx={{ color: "rgba(255, 255, 255, 0.85)", transition: "color 0.3s" }} />
             </ListItemIcon>
-            <ListItemText primary={t("儀表板")} />
+            <ListItemText 
+              primary={t("儀表板")} 
+              sx={{ 
+                "& .MuiTypography-root": { 
+                  color: "rgba(255, 255, 255, 0.85)",
+                  transition: "all 0.3s",
+                } 
+              }} 
+            />
           </ListItemButton>
         </ListItem>
         <ListItem disablePadding>
@@ -205,28 +262,102 @@ const AdminLayout = ({ children }) => {
               ? "/subadmin/manage-members"
               : "/admin/manage-members"}
             onClick={handleDrawerLinkClick}
-            sx={{ "&:hover": { backgroundColor: "#32CD32" } }}
+            selected={location.pathname === (userRole === "sub"
+              ? "/subadmin/manage-members"
+              : "/admin/manage-members")}
+            sx={{
+              borderRadius: "12px",
+              marginBottom: "8px",
+              transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+              "&:hover": {
+                backgroundColor: "rgba(50, 205, 50, 0.15)",
+                transform: "translateX(4px)",
+                "& .MuiListItemIcon-root": {
+                  color: "#32cd32",
+                },
+                "& .MuiListItemText-primary": {
+                  color: "#32cd32",
+                },
+              },
+              "&.Mui-selected": {
+                backgroundColor: "rgba(50, 205, 50, 0.2)",
+                borderLeft: "3px solid #32cd32",
+                "& .MuiListItemIcon-root": {
+                  color: "#32cd32",
+                },
+                "& .MuiListItemText-primary": {
+                  color: "#32cd32",
+                  fontWeight: 600,
+                },
+                "&:hover": {
+                  backgroundColor: "rgba(50, 205, 50, 0.25)",
+                },
+              },
+            }}
           >
             <ListItemIcon>
-              <PeopleIcon sx={{ color: "white" }} />
+              <PeopleIcon sx={{ color: "rgba(255, 255, 255, 0.85)", transition: "color 0.3s" }} />
             </ListItemIcon>
-            <ListItemText primary={t("管理會員")} />
+            <ListItemText 
+              primary={t("管理會員")} 
+              sx={{ 
+                "& .MuiTypography-root": { 
+                  color: "rgba(255, 255, 255, 0.85)",
+                  transition: "all 0.3s",
+                } 
+              }} 
+            />
           </ListItemButton>
         </ListItem>
         {userRole === "main" && (
           <ListItem disablePadding>
             <ListItemButton
               component={Link}
-              to={userRole === "sub"
-                ? "/subadmin/manage-admins"
-                : "/admin/manage-admins"}
+              to="/admin/manage-admins"
               onClick={handleDrawerLinkClick}
-              sx={{ "&:hover": { backgroundColor: "#32CD32" } }}
+              selected={location.pathname === "/admin/manage-admins"}
+              sx={{
+                borderRadius: "12px",
+                marginBottom: "8px",
+                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                "&:hover": {
+                  backgroundColor: "rgba(50, 205, 50, 0.15)",
+                  transform: "translateX(4px)",
+                  "& .MuiListItemIcon-root": {
+                    color: "#32cd32",
+                  },
+                  "& .MuiListItemText-primary": {
+                    color: "#32cd32",
+                  },
+                },
+                "&.Mui-selected": {
+                  backgroundColor: "rgba(50, 205, 50, 0.2)",
+                  borderLeft: "3px solid #32cd32",
+                  "& .MuiListItemIcon-root": {
+                    color: "#32cd32",
+                  },
+                  "& .MuiListItemText-primary": {
+                    color: "#32cd32",
+                    fontWeight: 600,
+                  },
+                  "&:hover": {
+                    backgroundColor: "rgba(50, 205, 50, 0.25)",
+                  },
+                },
+              }}
             >
               <ListItemIcon>
-                <AdminPanelSettingsIcon sx={{ color: "white" }} />
+                <AdminPanelSettingsIcon sx={{ color: "rgba(255, 255, 255, 0.85)", transition: "color 0.3s" }} />
               </ListItemIcon>
-              <ListItemText primary={t("管理副管理員")} />
+              <ListItemText 
+                primary={t("管理副管理員")} 
+                sx={{ 
+                  "& .MuiTypography-root": { 
+                    color: "rgba(255, 255, 255, 0.85)",
+                    transition: "all 0.3s",
+                  } 
+                }} 
+              />
             </ListItemButton>
           </ListItem>
         )}
@@ -303,12 +434,40 @@ const AdminLayout = ({ children }) => {
       <Box sx={{ mt: "auto", mx: 2, mb: 2 }}>
         <ListItemButton
           onClick={handleLogout}
-          sx={{ justifyContent: "center" }}
+          sx={{
+            justifyContent: "center",
+            borderRadius: "12px",
+            background: "linear-gradient(135deg, #ff4757 0%, #ee5a6f 100%)",
+            color: "white",
+            padding: "14px 20px",
+            fontWeight: 600,
+            boxShadow: "0 4px 12px rgba(255, 71, 87, 0.3)",
+            transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+            "&:hover": {
+              background: "linear-gradient(135deg, #ee5a6f 0%, #ff4757 100%)",
+              transform: "translateY(-2px)",
+              boxShadow: "0 6px 20px rgba(255, 71, 87, 0.4)",
+              "& .MuiListItemIcon-root": {
+                transform: "scale(1.1)",
+              },
+            },
+            "&:active": {
+              transform: "translateY(0)",
+            },
+          }}
         >
-          <ListItemIcon sx={{ justifyContent: "center" }}>
+          <ListItemIcon sx={{ justifyContent: "center", minWidth: "40px" }}>
             <LogoutIcon sx={{ color: "white" }} />
           </ListItemIcon>
-          <ListItemText primary={t("登出")} sx={{ textAlign: "center" }} />
+          <ListItemText 
+            primary={t("登出")} 
+            sx={{ 
+              textAlign: "center",
+              "& .MuiTypography-root": {
+                fontWeight: 600,
+              },
+            }} 
+          />
         </ListItemButton>
       </Box>
     </div>

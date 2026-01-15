@@ -1,70 +1,179 @@
 .adminLayout {
   display: flex;
   min-height: 100vh;
+  background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
 }
 
 .sidebar {
-  background-color: #333;
+  background: linear-gradient(180deg, #1a1f3a 0%, #0f1529 100%);
   color: white;
-  width: 300px;
-  padding: 20px;
+  width: 280px;
+  padding: 24px;
   display: flex;
   flex-direction: column;
+  box-shadow: 4px 0 20px rgba(0, 0, 0, 0.3);
+  border-right: 1px solid rgba(50, 205, 50, 0.1);
+  position: relative;
+  overflow-y: auto;
+
+  &::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, #32cd32, transparent);
+  }
 }
 
 .sidebarContent {
   display: flex;
   flex-direction: column;
   height: 100%;
+  gap: 24px;
 }
 
 .adminTitle {
-  font-size: 1.5rem;
-  margin-bottom: 20px;
+  font-size: 1.75rem;
+  margin-bottom: 32px;
   text-align: center;
+  font-weight: 600;
+  background: linear-gradient(135deg, #ffffff 0%, #32cd32 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  letter-spacing: 0.5px;
 }
 
 .navList {
   list-style: none;
   padding: 0;
+  margin: 0;
   margin-bottom: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .navItem {
-  margin-bottom: 10px;
+  margin: 0;
 }
 
 .navLink {
-  display: block;
-  padding: 10px 15px;
-  color: white;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  color: rgba(255, 255, 255, 0.85);
   text-decoration: none;
-  border-radius: 5px;
-  transition: background-color 0.3s ease;
+  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 500;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: #32cd32;
+    transform: scaleY(0);
+    transition: transform 0.3s ease;
+  }
 
   &:hover {
-    background-color: #555;
+    background: rgba(50, 205, 50, 0.15);
+    color: #32cd32;
+    transform: translateX(4px);
+    box-shadow: 0 4px 12px rgba(50, 205, 50, 0.2);
+
+    &::before {
+      transform: scaleY(1);
+    }
+  }
+
+  &.active {
+    background: rgba(50, 205, 50, 0.2);
+    color: #32cd32;
+    box-shadow: 0 4px 16px rgba(50, 205, 50, 0.3);
+
+    &::before {
+      transform: scaleY(1);
+    }
   }
 }
 
 .logoutButton {
-  background-color: #d9534f;
+  background: linear-gradient(135deg, #ff4757 0%, #ee5a6f 100%);
   color: white;
   border: none;
-  padding: 10px 15px;
-  border-radius: 5px;
+  padding: 14px 20px;
+  border-radius: 12px;
   cursor: pointer;
-  transition: background-color 0.3s ease;
-  margin-top: 20px;
-  align-self: flex-start;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  margin-top: auto;
+  align-self: stretch;
+  font-weight: 600;
+  font-size: 0.95rem;
+  box-shadow: 0 4px 12px rgba(255, 71, 87, 0.3);
 
   &:hover {
-    background-color: #c9302c;
+    background: linear-gradient(135deg, #ee5a6f 0%, #ff4757 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 71, 87, 0.4);
+  }
+
+  &:active {
+    transform: translateY(0);
   }
 }
 
 .mainContent {
   flex: 1;
-  padding: 20px;
-  background-color: #f4f4f4;
+  padding: 32px;
+  background: transparent;
+  overflow-y: auto;
+  
+  // Custom scrollbar
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 4px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: rgba(50, 205, 50, 0.3);
+    border-radius: 4px;
+    
+    &:hover {
+      background: rgba(50, 205, 50, 0.5);
+    }
+  }
+}
+
+// Responsive design
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+    max-width: 280px;
+    position: fixed;
+    left: -280px;
+    z-index: 1300;
+    transition: left 0.3s ease;
+    
+    &.open {
+      left: 0;
+    }
+  }
+  
+  .mainContent {
+    padding: 20px;
+  }
 }

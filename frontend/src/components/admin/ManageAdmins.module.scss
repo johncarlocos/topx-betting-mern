@@ -1,19 +1,45 @@
 .manageAdminsContainer {
-  padding: 0px;
+  padding: 0;
+  width: 100%;
+  max-width: 100%;
+  
   @media (max-width: 600px) {
     padding: 0;
   }
 }
 
 .manageAdminsTitle {
-  font-size: 2rem;
-  margin-bottom: 20px;
-  color: #333;
+  font-size: 2.5rem;
+  margin-bottom: 32px;
+  background: linear-gradient(135deg, #ffffff 0%, #32cd32 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  
+  @media (max-width: 768px) {
+    font-size: 2rem;
+    margin-bottom: 24px;
+  }
 }
 
 .manageAdminsContent {
-  background-color: white;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(10px);
+  padding: 32px;
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
+  
+  &:hover {
+    border-color: rgba(50, 205, 50, 0.3);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+  }
+  
+  @media (max-width: 768px) {
+    padding: 20px;
+    border-radius: 16px;
+  }
 }

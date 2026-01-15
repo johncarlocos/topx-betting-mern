@@ -1,4 +1,5 @@
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 const { Admin } = require("../models/admin.model");
 const { Member } = require("../models/member.model");
 const { uniqueNamesGenerator, adjectives, colors, animals } = require(
@@ -22,16 +23,30 @@ class AdminController {
    */
   static async login(req, res) {
     try {
-      const { username, password } = req.body;
+      const { username, password, expectedRole } = req.body;
       const admin = await Admin.findOne({ username }).select('+password');
 
       if (!admin) {
         return res.status(404).json({ message: "Admin not found" });
       }
 
+      // Validate role if expectedRole is provided
+      if (expectedRole) {
+        if (expectedRole === "main" && admin.role !== "main") {
+          return res.status(403).json({ 
+            message: "Access denied. Main admin credentials required.",
+            code: "INVALID_ROLE" 
+          });
+        }
+        if (expectedRole === "sub" && admin.role !== "sub") {
+          return res.status(403).json({ 
+            message: "Access denied. Sub-admin credentials required.",
+            code: "INVALID_ROLE" 
+          });
+        }
+      }
+
       console.log("Comparing password for admin:", admin.username);
-      console.log("Input password:", password);
-      console.log("Stored password hash:", admin.password);
       
       const isPasswordValid = await bcrypt.compare(password, admin.password);
       if (!isPasswordValid) {
@@ -43,18 +58,22 @@ class AdminController {
       }
       console.log("Password comparison succeeded for admin:", admin.username);
 
-      const sessionId = await SessionService.createSession(admin._id);
-
-      res.cookie("sessionId", sessionId, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: process.env.NODE_ENV === "production" ? "lax" : "strict",
-        path: "/",
-      });
+      // Generate JWT token
+      const token = jwt.sign(
+        { 
+          userId: admin._id.toString(),
+          role: admin.role,
+          username: admin.username
+        },
+        process.env.JWT_SECRET || "your-secret-key-change-in-production",
+        { expiresIn: "24h" }
+      );
 
       res.status(200).json({
         message: "Admin login successful",
+        token: token,
         role: admin.role,
+        username: admin.username,
       });
     } catch (error) {
       res.status(500).json({
@@ -74,21 +93,9 @@ class AdminController {
    */
   static async logout(req, res) {
     try {
-      const sessionId = req.cookies?.sessionId;
-
-      if (!sessionId) {
-        return res.status(400).json({ message: "No session ID provided" });
-      }
-
-      await SessionService.revokeSession(sessionId);
-
-      res.clearCookie("sessionId", {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: process.env.NODE_ENV === "production" ? "lax" : "strict",
-        path: "/",
-      });
-
+      // Token-based auth doesn't require server-side logout
+      // Token is removed from localStorage on client side
+      // Optionally, you could maintain a blacklist of tokens here
       res.status(200).json({ message: "Admin logout successful" });
     } catch (error) {
       res.status(500).json({
@@ -108,27 +115,12 @@ class AdminController {
    */
   static async checkAuth(req, res) {
     try {
-      const sessionId = req.cookies?.sessionId;
-
-      if (!sessionId) {
-        return res.status(401).json({ message: "No session ID provided" });
-      }
-
-      const session = await SessionService.validateSession(sessionId);
-
-      if (!session) {
-        return res.status(401).json({ message: "Invalid session" });
-      }
-
-      const admin = await Admin.findById(session.userId);
-
-      if (!admin) {
-        return res.status(404).json({ message: "Admin not found" });
-      }
-
+      // Auth is already validated by middleware
+      const admin = req.admin;
       res.status(200).json({
         message: "Admin is authenticated",
         role: admin.role,
+        username: admin.username,
       });
     } catch (error) {
       res.status(500).json({

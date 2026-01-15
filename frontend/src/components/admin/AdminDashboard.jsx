@@ -49,24 +49,75 @@ const AdminDashboard = () => {
       >
         {userRole === "sub" ? t("副管理員儀表板") : t("管理員儀表板")}
       </Typography>
-      <Card className="p-[10px]">
-        <CardContent>
-          <Typography variant="body1" paragraph>
+      <Card 
+        sx={{
+          backgroundColor: "rgba(26, 31, 58, 0.6)",
+          backdropFilter: "blur(10px)",
+          borderRadius: "20px",
+          border: "1px solid rgba(255, 255, 255, 0.1)",
+          boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
+          transition: "all 0.3s ease",
+          "&:hover": {
+            borderColor: "rgba(50, 205, 50, 0.3)",
+            boxShadow: "0 12px 40px rgba(0, 0, 0, 0.4)",
+          },
+        }}
+      >
+        <CardContent sx={{ padding: "40px" }}>
+          <Typography 
+            variant="body1" 
+            paragraph
+            sx={{
+              color: "rgba(255, 255, 255, 0.85)",
+              fontSize: "1.1rem",
+              lineHeight: 1.8,
+              marginBottom: "24px",
+            }}
+          >
             {userRole === "sub"
               ? t("歡迎來到副管理員儀表板。")
               : t("歡迎來到管理員儀表板。")}
           </Typography>
           <Box mb={2}>
-            <Typography variant="body1">
+            <Typography 
+              variant="body1"
+              sx={{
+                color: "rgba(255, 255, 255, 0.85)",
+                fontSize: "1.1rem",
+                marginBottom: "16px",
+              }}
+            >
               {t("管理會員")}:{" "}
-              <Typography variant="span" fontWeight="bold" ml={0.5}>
+              <Typography 
+                component="span" 
+                sx={{
+                  fontWeight: 700,
+                  marginLeft: "8px",
+                  color: "#32cd32",
+                  fontSize: "1.25rem",
+                }}
+              >
                 {isLoading ? t("分析中...") : memberCount}
               </Typography>
             </Typography>
             {userRole === "main" && (
-              <Typography variant="body1">
+              <Typography 
+                variant="body1"
+                sx={{
+                  color: "rgba(255, 255, 255, 0.85)",
+                  fontSize: "1.1rem",
+                }}
+              >
                 {t("管理管理員")}:{" "}
-                <Typography variant="span" fontWeight="bold" ml={0.5}>
+                <Typography 
+                  component="span"
+                  sx={{
+                    fontWeight: 700,
+                    marginLeft: "8px",
+                    color: "#32cd32",
+                    fontSize: "1.25rem",
+                  }}
+                >
                   {isSubAdminsLoading
                     ? t("分析中...")
                     : subAdminsError
@@ -77,27 +128,56 @@ const AdminDashboard = () => {
             )}
           </Box>
           <Box>
-            {(userRole === "main" || userRole === "sub") && (
-              <Button
-                component={Link}
-                to={userRole === "sub" ? "/subadmin/manage-members" : "/admin/manage-members"}
-                variant="contained"
-                color="primary"
-                sx={{ mr: 2 }}
-              >
-                {t("管理會員")}
-              </Button>
-            )}
-            {userRole === "main" && (
-              <Button
-                component={Link}
-                to="/admin/manage-admins"
-                variant="contained"
-                color="primary"
-              >
-                {t("管理管理員")}
-              </Button>
-            )}
+            <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap" }}>
+              {(userRole === "main" || userRole === "sub") && (
+                <Button
+                  component={Link}
+                  to={userRole === "sub" ? "/subadmin/manage-members" : "/admin/manage-members"}
+                  variant="contained"
+                  color="primary"
+                  sx={{
+                    background: "linear-gradient(135deg, #32cd32 0%, #28a428 100%)",
+                    borderRadius: "12px",
+                    padding: "14px 28px",
+                    textTransform: "none",
+                    fontWeight: 600,
+                    boxShadow: "0 4px 12px rgba(50, 205, 50, 0.3)",
+                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                    "&:hover": {
+                      background: "linear-gradient(135deg, #28a428 0%, #32cd32 100%)",
+                      transform: "translateY(-2px)",
+                      boxShadow: "0 6px 20px rgba(50, 205, 50, 0.4)",
+                    },
+                  }}
+                >
+                  {t("管理會員")}
+                </Button>
+              )}
+              {userRole === "main" && (
+                <Button
+                  component={Link}
+                  to="/admin/manage-admins"
+                  variant="contained"
+                  color="primary"
+                  sx={{
+                    background: "linear-gradient(135deg, #32cd32 0%, #28a428 100%)",
+                    borderRadius: "12px",
+                    padding: "14px 28px",
+                    textTransform: "none",
+                    fontWeight: 600,
+                    boxShadow: "0 4px 12px rgba(50, 205, 50, 0.3)",
+                    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                    "&:hover": {
+                      background: "linear-gradient(135deg, #28a428 0%, #32cd32 100%)",
+                      transform: "translateY(-2px)",
+                      boxShadow: "0 6px 20px rgba(50, 205, 50, 0.4)",
+                    },
+                  }}
+                >
+                  {t("管理管理員")}
+                </Button>
+              )}
+            </Box>
           </Box>
           {error && (
             <Typography variant="body2" color="error" mt={2}>

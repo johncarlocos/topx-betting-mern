@@ -9,10 +9,10 @@ const { authenticateAdmin, authorize } = require(
 router.post("/login", AdminController.login);
 
 // Route to handle admin logout
-router.post("/logout", AdminController.logout);
+router.post("/logout", authenticateAdmin, AdminController.logout);
 
 // Route to check admin authentication status
-router.get("/check-auth", AdminController.checkAuth);
+router.get("/check-auth", authenticateAdmin, AdminController.checkAuth);
 
 // Route to handle sub-admin registration (only main admin can access)
 router.post(

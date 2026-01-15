@@ -20,22 +20,33 @@ const AdminLoginForm = () => {
       const response = await api.post("/admin/login", {
         username,
         password,
+        expectedRole: "main", // Ensure only main admin can login through this form
       });
 
-      if (response.status === 200) {
-        // Set auth state - cookie is already set by server response
-        login(response.data.role);
-        // Navigate immediately - cookie will be sent with next request
-        navigate("/admin");
+      if (response.status === 200 && response.data.token) {
+        // Verify that the role is actually "main"
+        if (response.data.role !== "main") {
+          setError(t("無效的憑證類型"));
+          return;
+        }
+        // Save token to localStorage and set auth state
+        login(response.data.role, response.data.token, response.data.username);
+        // Navigate to admin dashboard
+        navigate("/admin", { replace: true });
       }
     } catch (err) {
-      const message = handleApiError(err);
+      const message = handleApiError(err, navigate);
       if (err.response) {
         // The request was made and the server responded with a status code
         // that falls out of the range of 2xx
-        if (err.response.status === 401) {
+        const status = err.response.status;
+        if (status === 401) {
           setError(t("用戶名或密碼錯誤"));
-        } else if (err.response.status === 404) {
+        } else if (status === 403) {
+          setError(t("無效的憑證類型，請使用主管理員帳號"));
+        } else if (status === 402) {
+          setError(t("支付要求錯誤，請聯繫管理員") || message);
+        } else if (status === 404) {
           setError(t("管理員未找到"));
         } else {
           setError(message || t("登錄時出錯"));

@@ -75,6 +75,119 @@ const ManageAdmins = () => {
   const darkTheme = createTheme({
     palette: {
       mode: "dark",
+      primary: {
+        main: "#32cd32",
+        light: "#5cdd5c",
+        dark: "#28a428",
+      },
+      background: {
+        default: "transparent",
+        paper: "rgba(26, 31, 58, 0.8)",
+      },
+      text: {
+        primary: "rgba(255, 255, 255, 0.9)",
+        secondary: "rgba(255, 255, 255, 0.7)",
+      },
+    },
+    components: {
+      MuiButton: {
+        styleOverrides: {
+          root: {
+            borderRadius: "12px",
+            padding: "10px 24px",
+            textTransform: "none",
+            fontWeight: 600,
+            boxShadow: "0 4px 12px rgba(50, 205, 50, 0.3)",
+            transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+            "&:hover": {
+              transform: "translateY(-2px)",
+              boxShadow: "0 6px 20px rgba(50, 205, 50, 0.4)",
+            },
+          },
+          contained: {
+            background: "linear-gradient(135deg, #32cd32 0%, #28a428 100%)",
+            "&:hover": {
+              background: "linear-gradient(135deg, #28a428 0%, #32cd32 100%)",
+            },
+          },
+        },
+      },
+      MuiDialog: {
+        styleOverrides: {
+          paper: {
+            background: "rgba(26, 31, 58, 0.95)",
+            backdropFilter: "blur(20px)",
+            borderRadius: "20px",
+            border: "1px solid rgba(255, 255, 255, 0.1)",
+            boxShadow: "0 8px 32px rgba(0, 0, 0, 0.4)",
+          },
+        },
+      },
+      MuiPaper: {
+        styleOverrides: {
+          root: {
+            backgroundImage: "none",
+            backgroundColor: "rgba(26, 31, 58, 0.6)",
+            backdropFilter: "blur(10px)",
+            borderRadius: "16px",
+            border: "1px solid rgba(255, 255, 255, 0.1)",
+          },
+        },
+      },
+      MuiTableCell: {
+        styleOverrides: {
+          root: {
+            borderColor: "rgba(255, 255, 255, 0.1)",
+            color: "rgba(255, 255, 255, 0.9)",
+          },
+          head: {
+            backgroundColor: "rgba(50, 205, 50, 0.1)",
+            color: "rgba(255, 255, 255, 0.95)",
+            fontWeight: 600,
+            fontSize: "0.95rem",
+          },
+        },
+      },
+      MuiTableRow: {
+        styleOverrides: {
+          root: {
+            "&:hover": {
+              backgroundColor: "rgba(50, 205, 50, 0.08)",
+            },
+            "&:nth-of-type(even)": {
+              backgroundColor: "rgba(255, 255, 255, 0.02)",
+            },
+          },
+        },
+      },
+      MuiTextField: {
+        styleOverrides: {
+          root: {
+            "& .MuiOutlinedInput-root": {
+              borderRadius: "12px",
+              backgroundColor: "rgba(255, 255, 255, 0.05)",
+              "& fieldset": {
+                borderColor: "rgba(255, 255, 255, 0.2)",
+              },
+              "&:hover fieldset": {
+                borderColor: "rgba(50, 205, 50, 0.5)",
+              },
+              "&.Mui-focused fieldset": {
+                borderColor: "#32cd32",
+              },
+            },
+            "& .MuiInputLabel-root": {
+              color: "rgba(255, 255, 255, 0.7)",
+              "&.Mui-focused": {
+                color: "#32cd32",
+              },
+            },
+            "& .MuiInputBase-input": {
+              color: "rgba(255, 255, 255, 0.9)",
+            },
+          },
+        },
+      },
     },
   });
 
@@ -274,14 +387,27 @@ const ManageAdmins = () => {
           color="primary"
           startIcon={<AddIcon />}
           onClick={handleOpenDialog}
+          sx={{
+            background: "linear-gradient(135deg, #32cd32 0%, #28a428 100%)",
+            "&:hover": {
+              background: "linear-gradient(135deg, #28a428 0%, #32cd32 100%)",
+            },
+          }}
         >
           {t("新增管理員")}
         </Button>
       </Box>
       <Card
-        style={{ backgroundColor: "#333", color: "white", }}
+        sx={{
+          backgroundColor: "rgba(26, 31, 58, 0.6)",
+          backdropFilter: "blur(10px)",
+          color: "white",
+          borderRadius: "20px",
+          border: "1px solid rgba(255, 255, 255, 0.1)",
+          boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
+        }}
       >
-        <CardContent style={{ padding: "10px" }}>
+        <CardContent sx={{ padding: "24px" }}>
           <ThemeProvider theme={darkTheme}>
             <div style={{ overflowX: "auto" }}>
               <TableContainer
@@ -289,22 +415,40 @@ const ManageAdmins = () => {
                 sx={{
                   margin: "0",
                   width: "100%",
-                  "@media (max-width: 600px)": {
-                    padding: "0px",
-                    margin: "0px",
-                    width: "100%",
+                  backgroundColor: "transparent",
+                  boxShadow: "none",
+                  borderRadius: "12px",
+                  overflow: "hidden",
+                  "& .MuiTable-root": {
+                    borderCollapse: "separate",
+                    borderSpacing: "0 8px",
                   },
                 }}
               >
                 <Table>
                   <TableHead>
                     {table.getHeaderGroups().map((headerGroup) => (
-                      <TableRow key={headerGroup.id}>
+                      <TableRow 
+                        key={headerGroup.id}
+                        sx={{
+                          "& .MuiTableCell-head": {
+                            backgroundColor: "rgba(50, 205, 50, 0.15)",
+                            borderBottom: "2px solid rgba(50, 205, 50, 0.3)",
+                          },
+                        }}
+                      >
                         {headerGroup.headers.map((header) => (
                           <TableCell
                             key={header.id}
                             onClick={header.column.getToggleSortingHandler()}
-                            style={{ cursor: "pointer" }}
+                            sx={{
+                              cursor: "pointer",
+                              userSelect: "none",
+                              transition: "all 0.2s ease",
+                              "&:hover": {
+                                backgroundColor: "rgba(50, 205, 50, 0.2)",
+                              },
+                            }}
                           >
                             {flexRender(
                               header.column.columnDef.header,
@@ -320,12 +464,41 @@ const ManageAdmins = () => {
                     ))}
                   </TableHead>
                   <TableBody>
-                    {table.getRowModel().rows.map((row) => (
-                      <TableRow key={row.id}>
+                    {table.getRowModel().rows.map((row, index) => (
+                      <TableRow 
+                        key={row.id}
+                        sx={{
+                          backgroundColor: index % 2 === 0 
+                            ? "rgba(255, 255, 255, 0.03)" 
+                            : "rgba(255, 255, 255, 0.05)",
+                          borderRadius: "12px",
+                          transition: "all 0.3s ease",
+                          "&:hover": {
+                            backgroundColor: "rgba(50, 205, 50, 0.12)",
+                            transform: "translateX(4px)",
+                            boxShadow: "0 4px 12px rgba(50, 205, 50, 0.2)",
+                          },
+                          "& .MuiTableCell-root": {
+                            borderBottom: "none",
+                            padding: "16px",
+                          },
+                          "& .MuiTableCell-root:first-of-type": {
+                            borderTopLeftRadius: "12px",
+                            borderBottomLeftRadius: "12px",
+                          },
+                          "& .MuiTableCell-root:last-of-type": {
+                            borderTopRightRadius: "12px",
+                            borderBottomRightRadius: "12px",
+                          },
+                        }}
+                      >
                         {row.getVisibleCells().map((cell) => (
                           <TableCell
                             key={cell.id}
-                            style={{ whiteSpace: "nowrap" }}
+                            sx={{ 
+                              whiteSpace: "nowrap",
+                              color: "rgba(255, 255, 255, 0.9)",
+                            }}
                           >
                             {flexRender(
                               cell.column.columnDef.cell,
@@ -365,8 +538,21 @@ const ManageAdmins = () => {
             </Box>
           </ThemeProvider>
           <ThemeProvider theme={darkTheme}>
-            <Dialog open={openDialog} onClose={handleCloseDialog}>
-              <DialogTitle>{t("新增管理員")}</DialogTitle>
+            <Dialog 
+              open={openDialog} 
+              onClose={handleCloseDialog}
+              PaperProps={{
+                sx: {
+                  background: "rgba(26, 31, 58, 0.95)",
+                  backdropFilter: "blur(20px)",
+                  borderRadius: "20px",
+                  border: "1px solid rgba(255, 255, 255, 0.1)",
+                }
+              }}
+            >
+              <DialogTitle sx={{ color: "rgba(255, 255, 255, 0.9)", fontSize: "1.5rem", fontWeight: 600 }}>
+                {t("新增管理員")}
+              </DialogTitle>
               <DialogContent
                 sx={{
                   padding: "20px",
@@ -413,9 +599,18 @@ const ManageAdmins = () => {
             <Dialog
               open={editOpen}
               onClose={handleEditClose}
-              sx={{ marginTop: "20px" }}
+              PaperProps={{
+                sx: {
+                  background: "rgba(26, 31, 58, 0.95)",
+                  backdropFilter: "blur(20px)",
+                  borderRadius: "20px",
+                  border: "1px solid rgba(255, 255, 255, 0.1)",
+                }
+              }}
             >
-              <DialogTitle>{t("編輯管理員")}</DialogTitle>
+              <DialogTitle sx={{ color: "rgba(255, 255, 255, 0.9)", fontSize: "1.5rem", fontWeight: 600 }}>
+                {t("編輯管理員")}
+              </DialogTitle>
               <DialogContent
                 sx={{
                   padding: "20px",
@@ -448,10 +643,25 @@ const ManageAdmins = () => {
                 </Button>
               </DialogActions>
             </Dialog>
-            <Dialog open={deleteOpen} onClose={handleDeleteClose}>
-              <DialogTitle>{t("刪除管理員")}</DialogTitle>
+            <Dialog 
+              open={deleteOpen} 
+              onClose={handleDeleteClose}
+              PaperProps={{
+                sx: {
+                  background: "rgba(26, 31, 58, 0.95)",
+                  backdropFilter: "blur(20px)",
+                  borderRadius: "20px",
+                  border: "1px solid rgba(255, 255, 255, 0.1)",
+                }
+              }}
+            >
+              <DialogTitle sx={{ color: "rgba(255, 255, 255, 0.9)", fontSize: "1.5rem", fontWeight: 600 }}>
+                {t("刪除管理員")}
+              </DialogTitle>
               <DialogContent>
-                <Typography>{t("確定要刪除此管理員嗎？")}</Typography>
+                <Typography sx={{ color: "rgba(255, 255, 255, 0.8)" }}>
+                  {t("確定要刪除此管理員嗎？")}
+                </Typography>
               </DialogContent>
               <DialogActions>
                 <Button onClick={handleDeleteClose}>{t("取消")}</Button>
