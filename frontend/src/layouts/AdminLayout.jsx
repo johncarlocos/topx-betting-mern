@@ -210,12 +210,49 @@ const AdminLayout = ({ children }) => {
             component={Link}
             to={userRole === "sub" ? "/subadmin" : "/admin"}
             onClick={handleDrawerLinkClick}
-            sx={{ "&:hover": { backgroundColor: "#32CD32" } }}
+            selected={location.pathname === (userRole === "sub" ? "/subadmin" : "/admin")}
+            sx={{
+              borderRadius: "12px",
+              marginBottom: "8px",
+              transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+              "&:hover": {
+                backgroundColor: "rgba(50, 205, 50, 0.15)",
+                transform: "translateX(4px)",
+                "& .MuiListItemIcon-root": {
+                  color: "#32cd32",
+                },
+                "& .MuiListItemText-primary": {
+                  color: "#32cd32",
+                },
+              },
+              "&.Mui-selected": {
+                backgroundColor: "rgba(50, 205, 50, 0.2)",
+                borderLeft: "3px solid #32cd32",
+                "& .MuiListItemIcon-root": {
+                  color: "#32cd32",
+                },
+                "& .MuiListItemText-primary": {
+                  color: "#32cd32",
+                  fontWeight: 600,
+                },
+                "&:hover": {
+                  backgroundColor: "rgba(50, 205, 50, 0.25)",
+                },
+              },
+            }}
           >
             <ListItemIcon>
-              <DashboardIcon sx={{ color: "white" }} />
+              <DashboardIcon sx={{ color: "rgba(255, 255, 255, 0.85)", transition: "color 0.3s" }} />
             </ListItemIcon>
-            <ListItemText primary={t("儀表板")} />
+            <ListItemText 
+              primary={t("儀表板")} 
+              sx={{ 
+                "& .MuiTypography-root": { 
+                  color: "rgba(255, 255, 255, 0.85)",
+                  transition: "all 0.3s",
+                } 
+              }} 
+            />
           </ListItemButton>
         </ListItem>
         <ListItem disablePadding>
@@ -225,28 +262,102 @@ const AdminLayout = ({ children }) => {
               ? "/subadmin/manage-members"
               : "/admin/manage-members"}
             onClick={handleDrawerLinkClick}
-            sx={{ "&:hover": { backgroundColor: "#32CD32" } }}
+            selected={location.pathname === (userRole === "sub"
+              ? "/subadmin/manage-members"
+              : "/admin/manage-members")}
+            sx={{
+              borderRadius: "12px",
+              marginBottom: "8px",
+              transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+              "&:hover": {
+                backgroundColor: "rgba(50, 205, 50, 0.15)",
+                transform: "translateX(4px)",
+                "& .MuiListItemIcon-root": {
+                  color: "#32cd32",
+                },
+                "& .MuiListItemText-primary": {
+                  color: "#32cd32",
+                },
+              },
+              "&.Mui-selected": {
+                backgroundColor: "rgba(50, 205, 50, 0.2)",
+                borderLeft: "3px solid #32cd32",
+                "& .MuiListItemIcon-root": {
+                  color: "#32cd32",
+                },
+                "& .MuiListItemText-primary": {
+                  color: "#32cd32",
+                  fontWeight: 600,
+                },
+                "&:hover": {
+                  backgroundColor: "rgba(50, 205, 50, 0.25)",
+                },
+              },
+            }}
           >
             <ListItemIcon>
-              <PeopleIcon sx={{ color: "white" }} />
+              <PeopleIcon sx={{ color: "rgba(255, 255, 255, 0.85)", transition: "color 0.3s" }} />
             </ListItemIcon>
-            <ListItemText primary={t("管理會員")} />
+            <ListItemText 
+              primary={t("管理會員")} 
+              sx={{ 
+                "& .MuiTypography-root": { 
+                  color: "rgba(255, 255, 255, 0.85)",
+                  transition: "all 0.3s",
+                } 
+              }} 
+            />
           </ListItemButton>
         </ListItem>
         {userRole === "main" && (
           <ListItem disablePadding>
             <ListItemButton
               component={Link}
-              to={userRole === "sub"
-                ? "/subadmin/manage-admins"
-                : "/admin/manage-admins"}
+              to="/admin/manage-admins"
               onClick={handleDrawerLinkClick}
-              sx={{ "&:hover": { backgroundColor: "#32CD32" } }}
+              selected={location.pathname === "/admin/manage-admins"}
+              sx={{
+                borderRadius: "12px",
+                marginBottom: "8px",
+                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                "&:hover": {
+                  backgroundColor: "rgba(50, 205, 50, 0.15)",
+                  transform: "translateX(4px)",
+                  "& .MuiListItemIcon-root": {
+                    color: "#32cd32",
+                  },
+                  "& .MuiListItemText-primary": {
+                    color: "#32cd32",
+                  },
+                },
+                "&.Mui-selected": {
+                  backgroundColor: "rgba(50, 205, 50, 0.2)",
+                  borderLeft: "3px solid #32cd32",
+                  "& .MuiListItemIcon-root": {
+                    color: "#32cd32",
+                  },
+                  "& .MuiListItemText-primary": {
+                    color: "#32cd32",
+                    fontWeight: 600,
+                  },
+                  "&:hover": {
+                    backgroundColor: "rgba(50, 205, 50, 0.25)",
+                  },
+                },
+              }}
             >
               <ListItemIcon>
-                <AdminPanelSettingsIcon sx={{ color: "white" }} />
+                <AdminPanelSettingsIcon sx={{ color: "rgba(255, 255, 255, 0.85)", transition: "color 0.3s" }} />
               </ListItemIcon>
-              <ListItemText primary={t("管理副管理員")} />
+              <ListItemText 
+                primary={t("管理副管理員")} 
+                sx={{ 
+                  "& .MuiTypography-root": { 
+                    color: "rgba(255, 255, 255, 0.85)",
+                    transition: "all 0.3s",
+                  } 
+                }} 
+              />
             </ListItemButton>
           </ListItem>
         )}
@@ -323,12 +434,40 @@ const AdminLayout = ({ children }) => {
       <Box sx={{ mt: "auto", mx: 2, mb: 2 }}>
         <ListItemButton
           onClick={handleLogout}
-          sx={{ justifyContent: "center" }}
+          sx={{
+            justifyContent: "center",
+            borderRadius: "12px",
+            background: "linear-gradient(135deg, #ff4757 0%, #ee5a6f 100%)",
+            color: "white",
+            padding: "14px 20px",
+            fontWeight: 600,
+            boxShadow: "0 4px 12px rgba(255, 71, 87, 0.3)",
+            transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+            "&:hover": {
+              background: "linear-gradient(135deg, #ee5a6f 0%, #ff4757 100%)",
+              transform: "translateY(-2px)",
+              boxShadow: "0 6px 20px rgba(255, 71, 87, 0.4)",
+              "& .MuiListItemIcon-root": {
+                transform: "scale(1.1)",
+              },
+            },
+            "&:active": {
+              transform: "translateY(0)",
+            },
+          }}
         >
-          <ListItemIcon sx={{ justifyContent: "center" }}>
+          <ListItemIcon sx={{ justifyContent: "center", minWidth: "40px" }}>
             <LogoutIcon sx={{ color: "white" }} />
           </ListItemIcon>
-          <ListItemText primary={t("登出")} sx={{ textAlign: "center" }} />
+          <ListItemText 
+            primary={t("登出")} 
+            sx={{ 
+              textAlign: "center",
+              "& .MuiTypography-root": {
+                fontWeight: 600,
+              },
+            }} 
+          />
         </ListItemButton>
       </Box>
     </div>

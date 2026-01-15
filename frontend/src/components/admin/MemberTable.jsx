@@ -215,41 +215,75 @@ const MemberTable = ({
           onChange={handleSearchChange}
           sx={{
             "& .MuiOutlinedInput-root": {
-              borderRadius: "8px",
+              borderRadius: "12px",
+              backgroundColor: "rgba(255, 255, 255, 0.05)",
+              transition: "all 0.3s ease",
+              "&:hover": {
+                backgroundColor: "rgba(255, 255, 255, 0.08)",
+              },
+              "&.Mui-focused": {
+                backgroundColor: "rgba(255, 255, 255, 0.1)",
+              },
             },
             "& .MuiInputLabel-root": {
               color: "rgba(255, 255, 255, 0.7)",
             },
             "& .MuiOutlinedInput-notchedOutline": {
-              borderColor: "rgba(255, 255, 255, 0.23)",
+              borderColor: "rgba(255, 255, 255, 0.2)",
             },
             "&:hover .MuiOutlinedInput-notchedOutline": {
-              borderColor: "rgba(255, 255, 255, 0.5)",
+              borderColor: "rgba(50, 205, 50, 0.5)",
             },
             "& .Mui-focused .MuiOutlinedInput-notchedOutline": {
-              borderColor: "#90caf9",
+              borderColor: "#32cd32",
+              borderWidth: "2px",
             },
             "& .MuiInputLabel-root.Mui-focused": {
-              color: "#90caf9",
+              color: "#32cd32",
             },
-          }}
-          InputProps={{
-            sx: {
-              color: "white",
+            "& .MuiInputBase-input": {
+              color: "rgba(255, 255, 255, 0.9)",
             },
           }}
         />
       </Box>
-      <TableContainer component={Paper}>
+      <TableContainer 
+        component={Paper}
+        sx={{
+          backgroundColor: "transparent",
+          boxShadow: "none",
+          borderRadius: "12px",
+          overflow: "hidden",
+          "& .MuiTable-root": {
+            borderCollapse: "separate",
+            borderSpacing: "0 8px",
+          },
+        }}
+      >
         <Table>
           <TableHead>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
+              <TableRow 
+                key={headerGroup.id}
+                sx={{
+                  "& .MuiTableCell-head": {
+                    backgroundColor: "rgba(50, 205, 50, 0.15)",
+                    borderBottom: "2px solid rgba(50, 205, 50, 0.3)",
+                  },
+                }}
+              >
                 {headerGroup.headers.map((header) => (
                   <TableCell
                     key={header.id}
                     onClick={header.column.getToggleSortingHandler()}
-                    style={{ cursor: "pointer" }}
+                    sx={{
+                      cursor: "pointer",
+                      userSelect: "none",
+                      transition: "all 0.2s ease",
+                      "&:hover": {
+                        backgroundColor: "rgba(50, 205, 50, 0.2)",
+                      },
+                    }}
                   >
                     {flexRender(
                       header.column.columnDef.header,
@@ -265,10 +299,42 @@ const MemberTable = ({
             ))}
           </TableHead>
           <TableBody>
-            {table.getRowModel().rows.map((row) => (
-              <TableRow key={row.id}>
+            {table.getRowModel().rows.map((row, index) => (
+              <TableRow 
+                key={row.id}
+                sx={{
+                  backgroundColor: index % 2 === 0 
+                    ? "rgba(255, 255, 255, 0.03)" 
+                    : "rgba(255, 255, 255, 0.05)",
+                  borderRadius: "12px",
+                  transition: "all 0.3s ease",
+                  "&:hover": {
+                    backgroundColor: "rgba(50, 205, 50, 0.12)",
+                    transform: "translateX(4px)",
+                    boxShadow: "0 4px 12px rgba(50, 205, 50, 0.2)",
+                  },
+                  "& .MuiTableCell-root": {
+                    borderBottom: "none",
+                    padding: "16px",
+                  },
+                  "& .MuiTableCell-root:first-of-type": {
+                    borderTopLeftRadius: "12px",
+                    borderBottomLeftRadius: "12px",
+                  },
+                  "& .MuiTableCell-root:last-of-type": {
+                    borderTopRightRadius: "12px",
+                    borderBottomRightRadius: "12px",
+                  },
+                }}
+              >
                 {row.getVisibleCells().map((cell) => (
-                  <TableCell key={cell.id} style={{ whiteSpace: 'nowrap' }}>
+                  <TableCell 
+                    key={cell.id} 
+                    sx={{ 
+                      whiteSpace: 'nowrap',
+                      color: "rgba(255, 255, 255, 0.9)",
+                    }}
+                  >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>
                 ))}
