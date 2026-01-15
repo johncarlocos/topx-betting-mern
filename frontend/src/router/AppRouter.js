@@ -2,6 +2,7 @@ import React, { Fragment, Suspense, lazy } from "react";
 import { Route, Routes } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout";
 import AdminLayout from "../layouts/AdminLayout";
+import ProtectedMemberRoute from "../components/common/ProtectedMemberRoute";
 
 // Lazy load components for code splitting and better performance
 const Landing = lazy(() => import("../views/Landing"));
@@ -47,7 +48,14 @@ const AppRouter = () => {
                     <Route path="/" element={<Landing />} />
                     <Route path="/admin" element={<Landing />} />
                     <Route path="/subadmin" element={<Landing />} />
-                    <Route path="/view-matches" element={<ViewMatches />} />
+                    <Route
+                      path="/view-matches"
+                      element={
+                        <ProtectedMemberRoute>
+                          <ViewMatches />
+                        </ProtectedMemberRoute>
+                      }
+                    />
                     <Route path="/record-matches" element={<ViewMatches />} />
                     <Route path="/match-result/:id" element={<MatchResult />} />
                     <Route path="/developer/language" element={<DeveloperPage />} />
