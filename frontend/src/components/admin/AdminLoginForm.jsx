@@ -23,7 +23,9 @@ const AdminLoginForm = () => {
       });
 
       if (response.status === 200) {
+        // Set auth state - cookie is already set by server response
         login(response.data.role);
+        // Navigate immediately - cookie will be sent with next request
         navigate("/admin");
       }
     } catch (err) {

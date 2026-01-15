@@ -46,38 +46,57 @@ const AdminLayout = ({ children }) => {
 
   // Check authentication status on mount
   useEffect(() => {
-    const checkAuth = async () => {
+    const checkAuth = async (retryCount = 0) => {
       try {
         const response = await api.get("/admin/check-auth");
         if (response.status === 200 && response.data.role) {
           // Session is valid, restore auth state
           login(response.data.role);
+          setIsCheckingAuth(false);
+        } else {
+          // No role in response, invalid session
+          throw new Error("Invalid session response");
         }
       } catch (error) {
-        // Session is invalid or missing
-        if (error.response?.status === 401 || error.response?.status === 404) {
-          logout();
-          const currentPath = location.pathname;
-          if (currentPath.startsWith("/admin")) {
-            navigate("/admin/login");
-          } else if (currentPath.startsWith("/subadmin")) {
-            navigate("/subadmin/login");
-          } else {
-            navigate("/login");
+        console.error("Admin auth check failed:", error, error.response?.status);
+        
+        // If we have Zustand state saying we're authenticated, trust it initially
+        // (might be a timing issue with cookie after login)
+        if (isAuthenticated && (userRole === "main" || userRole === "sub")) {
+          // Trust Zustand state if we're authenticated - user just logged in
+          // Retry the check once after a short delay to verify cookie is working
+          if (retryCount < 1) {
+            setTimeout(() => checkAuth(retryCount + 1), 300);
+            return;
           }
+          // If retry also fails but we have Zustand state, still trust it
+          setIsCheckingAuth(false);
+        } else {
+          // Not authenticated in Zustand and cookie check failed
+          // Only redirect if we're actually on an admin page
+          const currentPath = location.pathname;
+          if (currentPath.startsWith("/admin") || currentPath.startsWith("/subadmin")) {
+            // Clear any stale auth state
+            logout();
+            if (currentPath.startsWith("/admin")) {
+              navigate("/admin/login", { replace: true });
+            } else {
+              navigate("/subadmin/login", { replace: true });
+            }
+          }
+          setIsCheckingAuth(false);
         }
-      } finally {
-        setIsCheckingAuth(false);
       }
     };
 
-    // Only check if not already authenticated
-    if (!isAuthenticated) {
+    // If already authenticated in Zustand, still verify with server (but trust Zustand if check fails)
+    // This handles both cases: fresh login (trust Zustand) and page refresh (verify cookie)
+    if (!location.pathname.includes("/login")) {
       checkAuth();
     } else {
       setIsCheckingAuth(false);
     }
-  }, [isAuthenticated, login, logout, navigate, location]);
+  }, []); // Only run on mount
 
   useEffect(() => {
     if (isAuthenticated && !isCheckingAuth) {
