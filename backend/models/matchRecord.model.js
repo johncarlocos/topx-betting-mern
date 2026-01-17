@@ -23,11 +23,26 @@ const MatchRecordSchema = new Schema(
     },
     mediaUrl: {
       type: String,
+      // Keep for backward compatibility
     },
     mediaType: {
       type: String,
       enum: ["image", "video"],
+      // Keep for backward compatibility
     },
+    media: [
+      {
+        url: {
+          type: String,
+          required: true,
+        },
+        type: {
+          type: String,
+          enum: ["image", "video"],
+          required: true,
+        },
+      },
+    ],
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Admin",

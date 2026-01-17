@@ -154,5 +154,9 @@
   "暫無記錄": "No records yet",
   "刪除中...": "Deleting...",
   "創建": "Create",
-  "創建中...": "Creating..."
+  "創建中...": "Creating...",
+  "選擇照片或影片（可多選）": "Select Photos or Videos (Multiple)",
+  "個檔案已選擇": "files selected",
+  "只能上傳一個影片": "Only one video is allowed",
+  "請至少選擇一個檔案": "Please select at least one file"
 }

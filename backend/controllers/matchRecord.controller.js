@@ -19,7 +19,7 @@ class MatchRecordController {
   static async createRecord(req, res) {
     try {
       const { date, text } = req.body;
-      const file = req.file;
+      const files = req.files || []; // Array of files
       const adminId = req.admin._id; // From auth middleware
 
       if (!date || !text) {
@@ -28,11 +28,22 @@ class MatchRecordController {
         });
       }
 
-      let mediaUrl = null;
-      let mediaType = null;
+      // Validate: only one video allowed
+      const videoCount = files.filter(
+        (file) => file.mimetype.startsWith("video/")
+      ).length;
+      if (videoCount > 1) {
+        return res.status(400).json({
+          message: "Only one video is allowed per record",
+        });
+      }
 
-      // Handle file upload if present
-      if (file) {
+      let media = [];
+      let mediaUrl = null; // For backward compatibility
+      let mediaType = null; // For backward compatibility
+
+      // Handle multiple file uploads
+      if (files && files.length > 0) {
         try {
           // Create uploads directory in backend folder if it doesn't exist
           const uploadsDir = path.join(__dirname, "../uploads");
@@ -41,35 +52,46 @@ class MatchRecordController {
             Logger.info(`Created uploads directory: ${uploadsDir}`);
           }
 
-          // Generate unique filename
-          const fileExt = path.extname(file.originalname);
-          const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}${fileExt}`;
-          const filePath = path.join(uploadsDir, fileName);
+          // Process each file
+          for (const file of files) {
+            // Generate unique filename
+            const fileExt = path.extname(file.originalname);
+            const fileName = `${Date.now()}-${Math.random()
+              .toString(36)
+              .substring(7)}${fileExt}`;
+            const filePath = path.join(uploadsDir, fileName);
 
-          // Verify file buffer exists
-          if (!file.buffer) {
-            Logger.error("File buffer is empty");
-            return res.status(400).json({
-              message: "File upload failed: empty file buffer",
-            });
+            // Verify file buffer exists
+            if (!file.buffer) {
+              Logger.error("File buffer is empty");
+              continue; // Skip this file
+            }
+
+            // Write file to disk
+            fs.writeFileSync(filePath, file.buffer);
+            Logger.info(
+              `File saved successfully: ${filePath}, size: ${file.buffer.length} bytes`
+            );
+
+            // Verify file was written
+            if (!fs.existsSync(filePath)) {
+              Logger.error(`File was not written: ${filePath}`);
+              continue; // Skip this file
+            }
+
+            // Determine media type
+            const type = file.mimetype.startsWith("image/") ? "image" : "video";
+            const url = `/api/uploads/${fileName}`;
+
+            media.push({ url, type });
+            Logger.info(`File uploaded: ${url}, type: ${type}`);
+
+            // For backward compatibility: use first file
+            if (!mediaUrl) {
+              mediaUrl = url;
+              mediaType = type;
+            }
           }
-
-          // Write file to disk
-          fs.writeFileSync(filePath, file.buffer);
-          Logger.info(`File saved successfully: ${filePath}, size: ${file.buffer.length} bytes`);
-
-          // Verify file was written
-          if (!fs.existsSync(filePath)) {
-            Logger.error(`File was not written: ${filePath}`);
-            return res.status(500).json({
-              message: "File upload failed: file was not saved",
-            });
-          }
-
-          // Store URL path for accessing the file (served by backend)
-          mediaUrl = `/api/uploads/${fileName}`;
-          mediaType = file.mimetype.startsWith("image/") ? "image" : "video";
-          Logger.info(`File uploaded: ${mediaUrl}, type: ${mediaType}`);
         } catch (fileError) {
           Logger.error("Error handling file upload:", fileError);
           return res.status(500).json({
@@ -82,8 +104,9 @@ class MatchRecordController {
       const recordData = {
         date: new Date(date),
         text,
-        mediaUrl,
-        mediaType,
+        media, // New array format
+        mediaUrl, // Backward compatibility
+        mediaType, // Backward compatibility
         createdBy: adminId,
       };
 

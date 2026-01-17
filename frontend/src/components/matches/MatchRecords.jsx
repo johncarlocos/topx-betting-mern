@@ -13,11 +13,14 @@ import {
   useTheme,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import ArrowBackIosIcon from "@mui/icons-material/ArrowBackIos";
+import ArrowForwardIosIcon from "@mui/icons-material/ArrowForwardIos";
 import { format } from "date-fns";
 import { zhCN } from "date-fns/locale";
 
 const MatchRecords = () => {
   const [selectedRecord, setSelectedRecord] = useState(null);
+  const [currentMediaIndex, setCurrentMediaIndex] = useState(0);
   const theme = useTheme();
   const fullScreen = useMediaQuery(theme.breakpoints.down("md"));
 
@@ -42,10 +45,29 @@ const MatchRecords = () => {
 
   const handleCardClick = (record) => {
     setSelectedRecord(record);
+    setCurrentMediaIndex(0); // Reset to first media when opening
   };
 
   const handleCloseDialog = () => {
     setSelectedRecord(null);
+    setCurrentMediaIndex(0);
+  };
+
+  // Get all media items from record (new format or backward compatibility)
+  const getMediaItems = (record) => {
+    if (record.media && record.media.length > 0) {
+      return record.media;
+    }
+    if (record.mediaUrl) {
+      return [{ url: record.mediaUrl, type: record.mediaType }];
+    }
+    return [];
+  };
+
+  // Get first media item for grid display
+  const getFirstMediaItem = (record) => {
+    const mediaItems = getMediaItems(record);
+    return mediaItems.length > 0 ? mediaItems[0] : null;
   };
 
   if (isLoading) {
@@ -135,47 +157,69 @@ const MatchRecords = () => {
                   flexDirection: "column",
                 }}
               >
-                {record.mediaUrl && (
-                  <Box
-                    sx={{
-                      width: "100%",
-                      aspectRatio: "1",
-                      position: "relative",
-                      overflow: "hidden",
-                      backgroundColor: "#1a1a1a",
-                    }}
-                  >
-                    {record.mediaType === "video" ? (
-                      <video
-                        src={record.mediaUrl}
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "cover",
-                          pointerEvents: "none",
-                        }}
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Crect fill='%231a1a1a' width='400' height='400'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23666' font-family='Arial' font-size='14'%3EVideo not found%3C/text%3E%3C/svg%3E";
-                        }}
-                      />
-                    ) : (
-                      <img
-                        src={record.mediaUrl}
-                        alt={record.text}
-                        style={{
-                          width: "100%",
-                          height: "100%",
-                          objectFit: "cover",
-                        }}
-                        onError={(e) => {
-                          e.target.onerror = null;
-                          e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Crect fill='%231a1a1a' width='400' height='400'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23666' font-family='Arial' font-size='14'%3EImage not found%3C/text%3E%3C/svg%3E";
-                        }}
-                      />
-                    )}
-                  </Box>
-                )}
+                {(() => {
+                  const firstMedia = getFirstMediaItem(record);
+                  if (!firstMedia) return null;
+
+                  return (
+                    <Box
+                      sx={{
+                        width: "100%",
+                        aspectRatio: "1",
+                        position: "relative",
+                        overflow: "hidden",
+                        backgroundColor: "#1a1a1a",
+                      }}
+                    >
+                      {firstMedia.type === "video" ? (
+                        <video
+                          src={firstMedia.url}
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                            pointerEvents: "none",
+                          }}
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Crect fill='%231a1a1a' width='400' height='400'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23666' font-family='Arial' font-size='14'%3EVideo not found%3C/text%3E%3C/svg%3E";
+                          }}
+                        />
+                      ) : (
+                        <img
+                          src={firstMedia.url}
+                          alt={record.text}
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                          }}
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='400'%3E%3Crect fill='%231a1a1a' width='400' height='400'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23666' font-family='Arial' font-size='14'%3EImage not found%3C/text%3E%3C/svg%3E";
+                          }}
+                        />
+                      )}
+                      {getMediaItems(record).length > 1 && (
+                        <Box
+                          sx={{
+                            position: "absolute",
+                            top: 8,
+                            right: 8,
+                            backgroundColor: "rgba(50, 205, 50, 0.8)",
+                            color: "white",
+                            borderRadius: "12px",
+                            padding: "4px 8px",
+                            fontSize: "12px",
+                            fontWeight: 600,
+                          }}
+                        >
+                          +{getMediaItems(record).length - 1}
+                        </Box>
+                      )}
+                    </Box>
+                  );
+                })()}
               </Card>
             </Grid>
           ))}
@@ -225,50 +269,126 @@ const MatchRecords = () => {
             </IconButton>
 
             {/* Media Display */}
-            {selectedRecord.mediaUrl && (
-              <Box
-                sx={{
-                  width: "100%",
-                  flex: 1,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: "#000",
-                  padding: { xs: 2, sm: 4 },
-                }}
-              >
-                {selectedRecord.mediaType === "video" ? (
-                  <video
-                    src={selectedRecord.mediaUrl}
-                    controls
-                    autoPlay
-                    style={{
-                      maxWidth: "100%",
-                      maxHeight: "100%",
-                      objectFit: "contain",
-                    }}
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='600'%3E%3Crect fill='%231a1a1a' width='800' height='600'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23666' font-family='Arial' font-size='18'%3EVideo not found%3C/text%3E%3C/svg%3E";
-                    }}
-                  />
-                ) : (
-                  <img
-                    src={selectedRecord.mediaUrl}
-                    alt={selectedRecord.text}
-                    style={{
-                      maxWidth: "100%",
-                      maxHeight: "100%",
-                      objectFit: "contain",
-                    }}
-                    onError={(e) => {
-                      e.target.onerror = null;
-                      e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='600'%3E%3Crect fill='%231a1a1a' width='800' height='600'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23666' font-family='Arial' font-size='18'%3EImage not found%3C/text%3E%3C/svg%3E";
-                    }}
-                  />
-                )}
-              </Box>
-            )}
+            {(() => {
+              const mediaItems = getMediaItems(selectedRecord);
+              if (mediaItems.length === 0) return null;
+
+              const currentMedia = mediaItems[currentMediaIndex];
+
+              return (
+                <Box
+                  sx={{
+                    width: "100%",
+                    flex: 1,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: "#000",
+                    padding: { xs: 2, sm: 4 },
+                    position: "relative",
+                  }}
+                >
+                  {/* Navigation arrows */}
+                  {mediaItems.length > 1 && (
+                    <>
+                      <IconButton
+                        onClick={() =>
+                          setCurrentMediaIndex(
+                            currentMediaIndex === 0
+                              ? mediaItems.length - 1
+                              : currentMediaIndex - 1
+                          )
+                        }
+                        sx={{
+                          position: "absolute",
+                          left: 16,
+                          zIndex: 1000,
+                          backgroundColor: "rgba(0, 0, 0, 0.5)",
+                          color: "white",
+                          "&:hover": {
+                            backgroundColor: "rgba(0, 0, 0, 0.7)",
+                          },
+                        }}
+                      >
+                        <ArrowBackIosIcon />
+                      </IconButton>
+                      <IconButton
+                        onClick={() =>
+                          setCurrentMediaIndex(
+                            currentMediaIndex === mediaItems.length - 1
+                              ? 0
+                              : currentMediaIndex + 1
+                          )
+                        }
+                        sx={{
+                          position: "absolute",
+                          right: 16,
+                          zIndex: 1000,
+                          backgroundColor: "rgba(0, 0, 0, 0.5)",
+                          color: "white",
+                          "&:hover": {
+                            backgroundColor: "rgba(0, 0, 0, 0.7)",
+                          },
+                        }}
+                      >
+                        <ArrowForwardIosIcon />
+                      </IconButton>
+                      {/* Media counter */}
+                      <Box
+                        sx={{
+                          position: "absolute",
+                          top: 16,
+                          left: "50%",
+                          transform: "translateX(-50%)",
+                          backgroundColor: "rgba(0, 0, 0, 0.5)",
+                          color: "white",
+                          borderRadius: "12px",
+                          padding: "4px 12px",
+                          fontSize: "14px",
+                          zIndex: 1000,
+                        }}
+                      >
+                        {currentMediaIndex + 1} / {mediaItems.length}
+                      </Box>
+                    </>
+                  )}
+
+                  {/* Current media */}
+                  {currentMedia.type === "video" ? (
+                    <video
+                      key={currentMedia.url}
+                      src={currentMedia.url}
+                      controls
+                      autoPlay
+                      style={{
+                        maxWidth: "100%",
+                        maxHeight: "100%",
+                        objectFit: "contain",
+                      }}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='600'%3E%3Crect fill='%231a1a1a' width='800' height='600'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23666' font-family='Arial' font-size='18'%3EVideo not found%3C/text%3E%3C/svg%3E";
+                      }}
+                    />
+                  ) : (
+                    <img
+                      key={currentMedia.url}
+                      src={currentMedia.url}
+                      alt={selectedRecord.text}
+                      style={{
+                        maxWidth: "100%",
+                        maxHeight: "100%",
+                        objectFit: "contain",
+                      }}
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='600'%3E%3Crect fill='%231a1a1a' width='800' height='600'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23666' font-family='Arial' font-size='18'%3EImage not found%3C/text%3E%3C/svg%3E";
+                      }}
+                    />
+                  )}
+                </Box>
+              );
+            })()}
 
             {/* Details Section */}
             <Box

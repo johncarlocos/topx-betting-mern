@@ -32,7 +32,7 @@ router.post(
   "/",
   authenticateAdmin,
   authorize(["main", "sub"]),
-  upload.single("media"),
+  upload.array("media", 20), // Allow up to 20 files
   MatchRecordController.createRecord
 );
 
@@ -47,7 +47,7 @@ router.put(
   "/:id",
   authenticateAdmin,
   authorize(["main", "sub"]),
-  upload.single("media"),
+  upload.array("media", 20), // Allow up to 20 files
   MatchRecordController.updateRecord
 );
 
