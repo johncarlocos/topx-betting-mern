@@ -139,5 +139,20 @@
   "識別碼": "Identifier",
   "日期是必填欄位": "Date is a required field",
   "main_admin": "Main Admin",
-  "sub_admin": "Sub Admin"
+  "sub_admin": "Sub Admin",
+  "管理記錄": "Manage Records",
+  "新增記錄": "Add Record",
+  "記錄創建成功": "Record created successfully",
+  "創建記錄失敗": "Failed to create record",
+  "記錄刪除成功": "Record deleted successfully",
+  "刪除記錄失敗": "Failed to delete record",
+  "確認刪除": "Confirm Delete",
+  "您確定要刪除此記錄嗎？此操作無法復原。": "Are you sure you want to delete this record? This action cannot be undone.",
+  "選擇照片或影片": "Select Photo or Video",
+  "文字內容": "Text Content",
+  "請填寫所有必填欄位": "Please fill in all required fields",
+  "暫無記錄": "No records yet",
+  "刪除中...": "Deleting...",
+  "創建": "Create",
+  "創建中...": "Creating..."
 }

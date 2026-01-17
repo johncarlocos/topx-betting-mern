@@ -9,6 +9,7 @@ const Landing = lazy(() => import("../views/Landing"));
 const Login = lazy(() => import("../components/form/Login"));
 const ViewMatches = lazy(() => import("../components/matches/ViewMatches"));
 const MatchResult = lazy(() => import("../components/matches/MatchResult"));
+const MatchRecords = lazy(() => import("../components/matches/MatchRecords"));
 const NotFound = lazy(() => import("../views/NotFound"));
 const DeveloperPage = lazy(() => import("../components/developer/DeveloperPage"));
 const AdminLogin = lazy(() => import("../components/admin/AdminLogin"));
@@ -16,6 +17,7 @@ const SubAdminLogin = lazy(() => import("../components/admin/SubAdminLogin"));
 const AdminDashboard = lazy(() => import("../components/admin/AdminDashboard"));
 const ManageMembers = lazy(() => import("../components/admin/ManageMembers"));
 const ManageAdmins = lazy(() => import("../components/admin/ManageAdmins"));
+const ManageRecords = lazy(() => import("../components/admin/ManageRecords"));
 
 // Loading component
 const LoadingFallback = () => (
@@ -57,6 +59,7 @@ const AppRouter = () => {
                       }
                     />
                     <Route path="/record-matches" element={<ViewMatches />} />
+                    <Route path="/match-records" element={<MatchRecords />} />
                     <Route path="/match-result/:id" element={<MatchResult />} />
                     <Route path="/developer/language" element={<DeveloperPage />} />
                     <Route path="*" element={<NotFound />} />
@@ -96,6 +99,16 @@ const AppRouter = () => {
             }
           />
           <Route
+            path="/admin/manage-records"
+            element={
+              <AdminLayout>
+                <Suspense fallback={<LoadingFallback />}>
+                  <ManageRecords />
+                </Suspense>
+              </AdminLayout>
+            }
+          />
+          <Route
             path="/subadmin"
             element={
               <AdminLayout>
@@ -121,6 +134,16 @@ const AppRouter = () => {
               <AdminLayout>
                 <Suspense fallback={<LoadingFallback />}>
                   <ManageAdmins />
+                </Suspense>
+              </AdminLayout>
+            }
+          />
+          <Route
+            path="/subadmin/manage-records"
+            element={
+              <AdminLayout>
+                <Suspense fallback={<LoadingFallback />}>
+                  <ManageRecords />
                 </Suspense>
               </AdminLayout>
             }

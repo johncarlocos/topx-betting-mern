@@ -309,6 +309,62 @@ const AdminLayout = ({ children }) => {
             />
           </ListItemButton>
         </ListItem>
+        {(userRole === "main" || userRole === "sub") && (
+          <ListItem disablePadding>
+            <ListItemButton
+              component={Link}
+              to={userRole === "sub"
+                ? "/subadmin/manage-records"
+                : "/admin/manage-records"}
+              onClick={handleDrawerLinkClick}
+              selected={location.pathname === (userRole === "sub"
+                ? "/subadmin/manage-records"
+                : "/admin/manage-records")}
+              sx={{
+                borderRadius: "12px",
+                marginBottom: "8px",
+                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                "&:hover": {
+                  backgroundColor: "rgba(50, 205, 50, 0.15)",
+                  transform: "translateX(4px)",
+                  "& .MuiListItemIcon-root": {
+                    color: "#32cd32",
+                  },
+                  "& .MuiListItemText-primary": {
+                    color: "#32cd32",
+                  },
+                },
+                "&.Mui-selected": {
+                  backgroundColor: "rgba(50, 205, 50, 0.2)",
+                  borderLeft: "3px solid #32cd32",
+                  "& .MuiListItemIcon-root": {
+                    color: "#32cd32",
+                  },
+                  "& .MuiListItemText-primary": {
+                    color: "#32cd32",
+                    fontWeight: 600,
+                  },
+                  "&:hover": {
+                    backgroundColor: "rgba(50, 205, 50, 0.25)",
+                  },
+                },
+              }}
+            >
+              <ListItemIcon>
+                <EventNoteIcon sx={{ color: "rgba(255, 255, 255, 0.85)", transition: "color 0.3s" }} />
+              </ListItemIcon>
+              <ListItemText 
+                primary={t("管理記錄")} 
+                sx={{ 
+                  "& .MuiTypography-root": { 
+                    color: "rgba(255, 255, 255, 0.85)",
+                    transition: "all 0.3s",
+                  } 
+                }} 
+              />
+            </ListItemButton>
+          </ListItem>
+        )}
         {userRole === "main" && (
           <ListItem disablePadding>
             <ListItemButton

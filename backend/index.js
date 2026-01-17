@@ -136,6 +136,7 @@ connection.once("open", async () => {
 app.use("/admin", adminRoutes);
 app.use("/match", matchRoutes);
 app.use("/member", memberRoutes);
+app.use("/match-record", require("./routes/matchRecord.routes"));
 
 // Debug: Log all incoming requests to API routes (only in development)
 app.use((req, res, next) => {
@@ -149,6 +150,42 @@ app.use((req, res, next) => {
   next();
 });
 
+// Serve uploaded files from backend/uploads directory
+// This must come BEFORE the catch-all route for React
+const uploadsPath = path.join(__dirname, "uploads");
+Logger.info(`Uploads directory path: ${uploadsPath}`);
+if (!fs.existsSync(uploadsPath)) {
+  fs.mkdirSync(uploadsPath, { recursive: true });
+  Logger.info(`Created uploads directory: ${uploadsPath}`);
+}
+Logger.info(`Uploads directory exists: ${fs.existsSync(uploadsPath)}`);
+
+// Serve uploads at /uploads (nginx/proxy will forward /api/uploads to /uploads)
+app.use("/uploads", express.static(uploadsPath, {
+  setHeaders: (res, filePath) => {
+    // Set proper content type for images and videos
+    if (filePath.endsWith('.mp4') || filePath.endsWith('.webm') || filePath.endsWith('.ogg')) {
+      res.setHeader('Content-Type', 'video/mp4');
+    } else if (filePath.endsWith('.jpg') || filePath.endsWith('.jpeg')) {
+      res.setHeader('Content-Type', 'image/jpeg');
+    } else if (filePath.endsWith('.png')) {
+      res.setHeader('Content-Type', 'image/png');
+    } else if (filePath.endsWith('.gif')) {
+      res.setHeader('Content-Type', 'image/gif');
+    } else if (filePath.endsWith('.mov')) {
+      res.setHeader('Content-Type', 'video/quicktime');
+    }
+    // Add CORS headers
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+    // Prevent caching to avoid stale 404s
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+  },
+  maxAge: 3600000, // 1 hour
+  etag: true,
+  lastModified: true
+}));
+
 // Serve static files from the React app (only if frontend build exists - not in Docker with nginx)
 const frontendBuildPath = path.join(__dirname, "../frontend/build");
 const indexPath = path.join(frontendBuildPath, "index.html");
@@ -160,15 +197,19 @@ if (fs.existsSync(frontendBuildPath)) {
   // The "catchall" handler: for any request that doesn't
   // match one above, send back React's index.html file.
   // Only match non-API routes to avoid interfering with API endpoints
-  app.get("*", (req, res, next) => {
-    // Skip API routes - they should have been handled above
-    // If we reach here and it's an API route, it means the route wasn't found
-    if (req.path.startsWith("/admin") || 
-        req.path.startsWith("/match") || 
-        req.path.startsWith("/member")) {
-      // API route not found - return 404 JSON instead of HTML
-      return res.status(404).json({ error: "API endpoint not found", path: req.path });
-    }
+      app.get("*", (req, res, next) => {
+        // Skip API routes and uploads - they should have been handled above
+        // If we reach here and it's an API route, it means the route wasn't found
+        if (req.path.startsWith("/admin") || 
+            req.path.startsWith("/match") || 
+            req.path.startsWith("/member") ||
+            req.path.startsWith("/uploads")) {
+          // API route or uploads not found - return 404 JSON instead of HTML
+          if (req.path.startsWith("/uploads")) {
+            return res.status(404).json({ error: "File not found", path: req.path });
+          }
+          return res.status(404).json({ error: "API endpoint not found", path: req.path });
+        }
     
     // Only serve index.html for frontend routes (if file exists)
     if (fs.existsSync(indexPath)) {
@@ -189,13 +230,17 @@ if (fs.existsSync(frontendBuildPath)) {
 } else {
   // Frontend build doesn't exist (Docker scenario with nginx)
   // Only handle API routes
-  app.get("*", (req, res) => {
-    if (req.path.startsWith("/admin") || 
-        req.path.startsWith("/match") || 
-        req.path.startsWith("/member")) {
-      // API route not found
-      return res.status(404).json({ error: "API endpoint not found", path: req.path });
-    }
+      app.get("*", (req, res) => {
+        if (req.path.startsWith("/admin") || 
+            req.path.startsWith("/match") || 
+            req.path.startsWith("/member") ||
+            req.path.startsWith("/uploads")) {
+          // API route or uploads not found
+          if (req.path.startsWith("/uploads")) {
+            return res.status(404).json({ error: "File not found", path: req.path });
+          }
+          return res.status(404).json({ error: "API endpoint not found", path: req.path });
+        }
     // Non-API route - let nginx handle it (in Docker) or return 404
     res.status(404).json({ 
       error: "Not found", 

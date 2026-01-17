@@ -27,7 +27,7 @@ const PortfolioContent = (t) => [
   {
     img: "image4",
     tag: t("每日賽事記錄"),
-    link: "/record-matches",
+    link: "/match-records",
     hasRing: false,
     hasNotification: true, // Blue dot notification
   },
