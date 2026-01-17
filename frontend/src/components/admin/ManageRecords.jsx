@@ -78,6 +78,7 @@ const ManageRecords = () => {
             padding: "10px 24px",
             textTransform: "none",
             fontWeight: 600,
+            fontSize: "14px",
             boxShadow: "0 4px 12px rgba(50, 205, 50, 0.3)",
             transition: "all 0.3s cubic-bezier(0.4, 0.2, 1)",
             "&:hover": {
@@ -257,7 +258,7 @@ const ManageRecords = () => {
         </Box>
 
         {isLoading ? (
-          <Typography sx={{ color: "white" }}>{t("加載中...")}</Typography>
+          <Typography variant="body1" sx={{ color: "white" }}>{t("加載中...")}</Typography>
         ) : records.length === 0 ? (
           <Card
             sx={{
@@ -268,14 +269,14 @@ const ManageRecords = () => {
               textAlign: "center",
             }}
           >
-            <Typography sx={{ color: "rgba(255, 255, 255, 0.7)" }}>
+            <Typography variant="h6" sx={{ color: "rgba(255, 255, 255, 0.7)" }}>
               {t("暫無記錄")}
             </Typography>
           </Card>
         ) : (
-          <Grid container spacing={3}>
+          <Grid container spacing={{ xs: 1, sm: 2, md: 2, lg: 2, xl: 2.5 }}>
             {records.map((record) => (
-              <Grid item xs={12} sm={6} md={4} key={record._id}>
+              <Grid item xs={4} sm={4} md={3} lg={2} xl={2} key={record._id}>
                 <Card
                   sx={{
                     backgroundColor: "rgba(26, 31, 58, 0.6)",
@@ -310,7 +311,7 @@ const ManageRecords = () => {
                     <Box
                       sx={{
                         width: "100%",
-                        height: "200px",
+                        height: { xs: "120px", sm: "150px", md: "180px", lg: "200px" },
                         position: "relative",
                         overflow: "hidden",
                         backgroundColor: "#1a1a1a",

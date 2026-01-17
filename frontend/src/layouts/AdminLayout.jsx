@@ -309,6 +309,58 @@ const AdminLayout = ({ children }) => {
             />
           </ListItemButton>
         </ListItem>
+        {userRole === "main" && (
+          <ListItem disablePadding>
+            <ListItemButton
+              component={Link}
+              to="/admin/manage-admins"
+              onClick={handleDrawerLinkClick}
+              selected={location.pathname === "/admin/manage-admins"}
+              sx={{
+                borderRadius: "12px",
+                marginBottom: "8px",
+                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+                "&:hover": {
+                  backgroundColor: "rgba(50, 205, 50, 0.15)",
+                  transform: "translateX(4px)",
+                  "& .MuiListItemIcon-root": {
+                    color: "#32cd32",
+                  },
+                  "& .MuiListItemText-primary": {
+                    color: "#32cd32",
+                  },
+                },
+                "&.Mui-selected": {
+                  backgroundColor: "rgba(50, 205, 50, 0.2)",
+                  borderLeft: "3px solid #32cd32",
+                  "& .MuiListItemIcon-root": {
+                    color: "#32cd32",
+                  },
+                  "& .MuiListItemText-primary": {
+                    color: "#32cd32",
+                    fontWeight: 600,
+                  },
+                  "&:hover": {
+                    backgroundColor: "rgba(50, 205, 50, 0.25)",
+                  },
+                },
+              }}
+            >
+              <ListItemIcon>
+                <AdminPanelSettingsIcon sx={{ color: "rgba(255, 255, 255, 0.85)", transition: "color 0.3s" }} />
+              </ListItemIcon>
+              <ListItemText 
+                primary={t("管理副管理員")} 
+                sx={{ 
+                  "& .MuiTypography-root": { 
+                    color: "rgba(255, 255, 255, 0.85)",
+                    transition: "all 0.3s",
+                  } 
+                }} 
+              />
+            </ListItemButton>
+          </ListItem>
+        )}
         {(userRole === "main" || userRole === "sub") && (
           <ListItem disablePadding>
             <ListItemButton
@@ -355,58 +407,6 @@ const AdminLayout = ({ children }) => {
               </ListItemIcon>
               <ListItemText 
                 primary={t("管理記錄")} 
-                sx={{ 
-                  "& .MuiTypography-root": { 
-                    color: "rgba(255, 255, 255, 0.85)",
-                    transition: "all 0.3s",
-                  } 
-                }} 
-              />
-            </ListItemButton>
-          </ListItem>
-        )}
-        {userRole === "main" && (
-          <ListItem disablePadding>
-            <ListItemButton
-              component={Link}
-              to="/admin/manage-admins"
-              onClick={handleDrawerLinkClick}
-              selected={location.pathname === "/admin/manage-admins"}
-              sx={{
-                borderRadius: "12px",
-                marginBottom: "8px",
-                transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-                "&:hover": {
-                  backgroundColor: "rgba(50, 205, 50, 0.15)",
-                  transform: "translateX(4px)",
-                  "& .MuiListItemIcon-root": {
-                    color: "#32cd32",
-                  },
-                  "& .MuiListItemText-primary": {
-                    color: "#32cd32",
-                  },
-                },
-                "&.Mui-selected": {
-                  backgroundColor: "rgba(50, 205, 50, 0.2)",
-                  borderLeft: "3px solid #32cd32",
-                  "& .MuiListItemIcon-root": {
-                    color: "#32cd32",
-                  },
-                  "& .MuiListItemText-primary": {
-                    color: "#32cd32",
-                    fontWeight: 600,
-                  },
-                  "&:hover": {
-                    backgroundColor: "rgba(50, 205, 50, 0.25)",
-                  },
-                },
-              }}
-            >
-              <ListItemIcon>
-                <AdminPanelSettingsIcon sx={{ color: "rgba(255, 255, 255, 0.85)", transition: "color 0.3s" }} />
-              </ListItemIcon>
-              <ListItemText 
-                primary={t("管理副管理員")} 
                 sx={{ 
                   "& .MuiTypography-root": { 
                     color: "rgba(255, 255, 255, 0.85)",
@@ -680,6 +680,7 @@ const AdminLayout = ({ children }) => {
                   textDecoration: "none",
                   padding: "8px 12px",
                   borderRadius: "4px",
+                  fontSize: "14px",
                   "&:hover": {
                     backgroundColor: "rgba(255,255,255,0.1)",
                   },
