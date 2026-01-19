@@ -4,7 +4,6 @@ import { api } from "../../utils/api";
 import {
   Box,
   Card,
-  CardContent,
   Grid,
   Typography,
   CircularProgress,
@@ -182,7 +181,7 @@ const MatchRecords = () => {
                     <Box
                       sx={{
                         width: "100%",
-                        height: { xs: "180px", sm: "220px", md: "260px", lg: "300px" },
+                        height: { xs: "200px", sm: "220px", md: "260px", lg: "300px" },
                         position: "relative",
                         overflow: "hidden",
                         backgroundColor: "#1a1a1a",
@@ -238,31 +237,6 @@ const MatchRecords = () => {
                     </Box>
                   );
                 })()}
-                <CardContent
-                  sx={{
-                    borderRadius: "0 0 6px 6px",
-                  }}
-                >
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      color: "#32cd32",
-                      display: "block",
-                      mb: 1,
-                    }}
-                  >
-                    {formatDate(record.date)}
-                  </Typography>
-                  <Typography
-                    variant="body1"
-                    sx={{
-                      color: "rgba(255, 255, 255, 0.9)",
-                      wordBreak: "break-word",
-                    }}
-                  >
-                    {record.text}
-                  </Typography>
-                </CardContent>
               </Card>
             </Grid>
           ))}
