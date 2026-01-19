@@ -74,6 +74,19 @@ const PortfolioGallery = () => {
           background-color: #1a1a1a;
           transition: all 0.3s ease;
           cursor: pointer;
+          outline: none !important;
+        }
+        
+        .portfolio-card-image:focus,
+        .portfolio-card-image:focus-visible,
+        .portfolio-card-image:active {
+          outline: none !important;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3) !important;
+        }
+        
+        .portfolio-grid-item a:focus,
+        .portfolio-grid-item a:focus-visible {
+          outline: none !important;
         }
         
         /* Tablet (768px - 991px) */
@@ -143,29 +156,31 @@ const PortfolioGallery = () => {
                   width: "100%",
                   position: "relative",
                   display: "block",
+                  outline: "none",
+                }}
+                onFocus={(e) => {
+                  e.currentTarget.style.outline = "none";
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.outline = "none";
                 }}
               >
                 <div
                   className="portfolio-card-image"
                   style={{
-                    boxShadow: val.hasRing
-                      ? "0 0 0 3px #0496ff, 0 4px 12px rgba(0, 0, 0, 0.3)"
-                      : "0 4px 12px rgba(0, 0, 0, 0.3)",
+                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.3)",
+                    outline: "none",
                   }}
                   onMouseEnter={(e) => {
                     if (window.innerWidth > 767) {
                       e.currentTarget.style.transform = "scale(1.05)";
-                      e.currentTarget.style.boxShadow = val.hasRing
-                        ? "0 0 0 3px #0496ff, 0 6px 20px rgba(0, 0, 0, 0.4)"
-                        : "0 6px 20px rgba(0, 0, 0, 0.4)";
+                      e.currentTarget.style.boxShadow = "0 6px 20px rgba(0, 0, 0, 0.4)";
                     }
                   }}
                   onMouseLeave={(e) => {
                     if (window.innerWidth > 767) {
                       e.currentTarget.style.transform = "scale(1)";
-                      e.currentTarget.style.boxShadow = val.hasRing
-                        ? "0 0 0 3px #0496ff, 0 4px 12px rgba(0, 0, 0, 0.3)"
-                        : "0 4px 12px rgba(0, 0, 0, 0.3)";
+                      e.currentTarget.style.boxShadow = "0 4px 12px rgba(0, 0, 0, 0.3)";
                     }
                   }}
                   onTouchStart={(e) => {

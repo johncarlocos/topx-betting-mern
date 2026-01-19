@@ -349,20 +349,40 @@ const ManageRecords = () => {
             {records.map((record) => (
               <Grid item xs={4} sm={4} md={3} lg={2} xl={2} key={record._id}>
                 <Card
+                  elevation={0}
                   onClick={() => handleCardClick(record)}
                   sx={{
                     backgroundColor: "rgba(26, 31, 58, 0.6)",
                     backdropFilter: "blur(10px)",
-                    borderRadius: "20px",
+                    borderRadius: "6px !important",
                     border: "1px solid rgba(255, 255, 255, 0.1)",
                     transition: "all 0.3s ease",
                     cursor: "pointer",
+                    overflow: "hidden",
+                    outline: "none !important",
+                    boxShadow: "none !important",
                     "&:hover": {
                       borderColor: "rgba(50, 205, 50, 0.3)",
                       boxShadow: "0 12px 40px rgba(0, 0, 0, 0.4)",
                       transform: "scale(1.02)",
                     },
+                    "&:focus": {
+                      outline: "none !important",
+                      borderColor: "rgba(255, 255, 255, 0.1)",
+                      boxShadow: "none !important",
+                    },
+                    "&:focus-visible": {
+                      outline: "none !important",
+                      borderColor: "rgba(255, 255, 255, 0.1)",
+                      boxShadow: "none !important",
+                    },
+                    "&:active": {
+                      boxShadow: "none !important",
+                    },
                     position: "relative",
+                    "& .MuiCardContent-root": {
+                      borderRadius: "0 0 6px 6px",
+                    },
                   }}
                 >
                   <IconButton
@@ -385,10 +405,11 @@ const ManageRecords = () => {
                     <Box
                       sx={{
                         width: "100%",
-                        height: { xs: "120px", sm: "150px", md: "180px", lg: "200px" },
+                        height: { xs: "180px", sm: "220px", md: "260px", lg: "300px" },
                         position: "relative",
                         overflow: "hidden",
                         backgroundColor: "#1a1a1a",
+                        borderRadius: "6px 6px 0 0",
                       }}
                     >
                       {(() => {

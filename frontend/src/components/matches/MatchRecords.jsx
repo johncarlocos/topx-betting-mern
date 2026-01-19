@@ -4,6 +4,7 @@ import { api } from "../../utils/api";
 import {
   Box,
   Card,
+  CardContent,
   Grid,
   Typography,
   CircularProgress,
@@ -138,19 +139,35 @@ const MatchRecords = () => {
           {records.map((record) => (
             <Grid item xs={4} sm={4} md={3} lg={2} xl={2} key={record._id}>
               <Card
+                elevation={0}
                 onClick={() => handleCardClick(record)}
                 sx={{
                   backgroundColor: "rgba(26, 31, 58, 0.6)",
                   backdropFilter: "blur(10px)",
-                  borderRadius: "12px",
+                  borderRadius: "6px !important",
                   border: "1px solid rgba(255, 255, 255, 0.1)",
                   transition: "all 0.3s ease",
                   overflow: "hidden",
                   cursor: "pointer",
+                  outline: "none !important",
+                  boxShadow: "none !important",
                   "&:hover": {
                     borderColor: "rgba(50, 205, 50, 0.5)",
                     boxShadow: "0 8px 24px rgba(50, 205, 50, 0.3)",
                     transform: "scale(1.02)",
+                  },
+                  "&:focus": {
+                    outline: "none !important",
+                    borderColor: "rgba(255, 255, 255, 0.1)",
+                    boxShadow: "none !important",
+                  },
+                  "&:focus-visible": {
+                    outline: "none !important",
+                    borderColor: "rgba(255, 255, 255, 0.1)",
+                    boxShadow: "none !important",
+                  },
+                  "&:active": {
+                    boxShadow: "none !important",
                   },
                   height: "100%",
                   display: "flex",
@@ -165,10 +182,11 @@ const MatchRecords = () => {
                     <Box
                       sx={{
                         width: "100%",
-                        aspectRatio: "1",
+                        height: { xs: "180px", sm: "220px", md: "260px", lg: "300px" },
                         position: "relative",
                         overflow: "hidden",
                         backgroundColor: "#1a1a1a",
+                        borderRadius: "6px 6px 0 0",
                       }}
                     >
                       {firstMedia.type === "video" ? (
@@ -220,6 +238,31 @@ const MatchRecords = () => {
                     </Box>
                   );
                 })()}
+                <CardContent
+                  sx={{
+                    borderRadius: "0 0 6px 6px",
+                  }}
+                >
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      color: "#32cd32",
+                      display: "block",
+                      mb: 1,
+                    }}
+                  >
+                    {formatDate(record.date)}
+                  </Typography>
+                  <Typography
+                    variant="body1"
+                    sx={{
+                      color: "rgba(255, 255, 255, 0.9)",
+                      wordBreak: "break-word",
+                    }}
+                  >
+                    {record.text}
+                  </Typography>
+                </CardContent>
               </Card>
             </Grid>
           ))}
