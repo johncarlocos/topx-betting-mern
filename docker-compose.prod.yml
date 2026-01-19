@@ -34,26 +34,14 @@ services:
     command: sh -c "cd backend && npm ci --only=production && npm start"
     restart: unless-stopped
     environment:
-      # MongoDB Configuration (Use environment variable, MongoDB Atlas, or default to local MongoDB service)
-      - ATLAS_URI=${ATLAS_URI}
-      - MONGO_HOST=mongodb
-      - MONGO_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD:-example}
-      - MONGO_ROOT_USERNAME=${MONGO_ROOT_USERNAME:-root}
-      
-      # Redis Configuration
-      - REDIS_HOST=${REDIS_HOST:-redis}
-      - REDIS_PORT=${REDIS_PORT:-6379}
-      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
-      
-      # Server Configuration
-      - PORT=${PORT:-5000}
-      - NODE_ENV=${NODE_ENV:-production}
-      
-      # Security Configuration (MUST be set via .env file)
+      - ATLAS_URI=mongodb://root:example@mongodb:27017/betting-china?authSource=admin
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - PORT=5000
+      - NODE_ENV=production
+      - FETCHER=true
       - JWT_SECRET=b1b2962ec42d0cd86622296b6192d3124d89369c552c92825a92e4b0101676284a6c7b21e1f4eec1b03d9eda26d23d5b10894548a50d0f4453cf6fdca3f7bbad
-      
-      # Feature Flags
-      - FETCHER=${FETCHER:-true}
+      - FETCHER=true
     networks:
       - app-network
     depends_on:
