@@ -16,7 +16,7 @@ services:
       - app-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/"]
+      test: ["CMD-SHELL", "wget --quiet --tries=1 --spider http://localhost/ || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -28,7 +28,8 @@ services:
     working_dir: /app
     volumes:
       - ./backend:/app/backend:ro
-      - /app/backend/logs
+      - backend_uploads:/app/backend/uploads
+      - backend_logs:/app/backend/logs
     # Build backend dependencies
     command: sh -c "cd backend && npm ci --only=production && npm start"
     restart: unless-stopped
@@ -58,7 +59,7 @@ services:
       mongodb:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:5000/api/match/match-data"]
+      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:5000/api/match/match-data', (r) => { process.exit(r.statusCode === 200 ? 0 : 1) }).on('error', () => process.exit(1))\" || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -119,7 +120,7 @@ services:
       - app-network
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      test: ["CMD-SHELL", "redis-cli --raw incr ping || exit 1"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -147,3 +148,7 @@ volumes:
     name: topx_mongodb_config_prod
   redis_data:
     name: topx_redis_data_prod
+  backend_uploads:
+    name: topx_backend_uploads_prod
+  backend_logs:
+    name: topx_backend_logs_prod
