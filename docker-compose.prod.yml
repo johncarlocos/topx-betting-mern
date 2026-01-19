@@ -40,14 +40,13 @@ services:
       # Redis Configuration
       - REDIS_HOST=${REDIS_HOST:-redis}
       - REDIS_PORT=${REDIS_PORT:-6379}
-      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
       
       # Server Configuration
       - PORT=${PORT:-5000}
       - NODE_ENV=${NODE_ENV:-production}
       
       # Security Configuration (MUST be set via .env file)
-      - JWT_SECRET=${JWT_SECRET}
+      - JWT_SECRET=b1b2962ec42d0cd86622296b6192d3124d89369c552c92825a92e4b0101676284a6c7b21e1f4eec1b03d9eda26d23d5b10894548a50d0f4453cf6fdca3f7bbad
       
       # Feature Flags
       - FETCHER=${FETCHER:-true}
@@ -110,7 +109,6 @@ services:
     container_name: topx-redis-prod
     command: >
       redis-server 
-      --requirepass ${REDIS_PASSWORD:-}
       --appendonly yes 
       --maxmemory 512mb 
       --maxmemory-policy allkeys-lru
