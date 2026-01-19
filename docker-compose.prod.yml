@@ -34,12 +34,16 @@ services:
     command: sh -c "cd backend && npm ci --only=production && npm start"
     restart: unless-stopped
     environment:
-      # MongoDB Configuration (Use environment variable or MongoDB Atlas)
+      # MongoDB Configuration (Use environment variable, MongoDB Atlas, or default to local MongoDB service)
       - ATLAS_URI=${ATLAS_URI}
+      - MONGO_HOST=mongodb
+      - MONGO_ROOT_PASSWORD=${MONGO_ROOT_PASSWORD:-example}
+      - MONGO_ROOT_USERNAME=${MONGO_ROOT_USERNAME:-root}
       
       # Redis Configuration
       - REDIS_HOST=${REDIS_HOST:-redis}
       - REDIS_PORT=${REDIS_PORT:-6379}
+      - REDIS_PASSWORD=${REDIS_PASSWORD:-}
       
       # Server Configuration
       - PORT=${PORT:-5000}

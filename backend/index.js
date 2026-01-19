@@ -34,8 +34,16 @@ app.use(cors({
 app.use(express.json());
 app.use(cookieParser()); // Add cookie parsing middleware
 
-const uri = process.env.ATLAS_URI ||
-  "mongodb://root:example@localhost:27017/betting-china?authSource=admin";
+// Build MongoDB URI from environment variables or use default
+let uri = process.env.ATLAS_URI;
+if (!uri) {
+  // Construct URI from environment variables (for Docker Compose)
+  const mongoHost = process.env.MONGO_HOST || (process.env.NODE_ENV === "production" ? "mongodb" : "localhost");
+  const mongoUser = process.env.MONGO_ROOT_USERNAME || "root";
+  const mongoPass = process.env.MONGO_ROOT_PASSWORD || "example";
+  const mongoPort = process.env.MONGO_PORT || "27017";
+  uri = `mongodb://${mongoUser}:${mongoPass}@${mongoHost}:${mongoPort}/betting-china?authSource=admin`;
+}
 Logger.info("Connecting to MongoDB database...", uri.replace(/\/\/[^:]+:[^@]+@/, "//***:***@")); // Hide password in logs
 
 // MongoDB connection options with connection pooling
