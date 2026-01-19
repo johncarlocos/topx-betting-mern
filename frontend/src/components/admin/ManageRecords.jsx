@@ -6,7 +6,6 @@ import {
   Box,
   Button,
   Card,
-  CardContent,
   createTheme,
   Dialog,
   DialogActions,
@@ -380,9 +379,6 @@ const ManageRecords = () => {
                       boxShadow: "none !important",
                     },
                     position: "relative",
-                    "& .MuiCardContent-root": {
-                      borderRadius: "0 0 6px 6px",
-                    },
                   }}
                 >
                   <IconButton
@@ -452,8 +448,8 @@ const ManageRecords = () => {
                         <Box
                           sx={{
                             position: "absolute",
-                            top: 8,
-                            left: 8,
+                            bottom: 8,
+                            right: 8,
                             backgroundColor: "rgba(50, 205, 50, 0.8)",
                             color: "white",
                             borderRadius: "12px",
@@ -467,28 +463,6 @@ const ManageRecords = () => {
                       )}
                     </Box>
                   ) : null}
-
-                  <CardContent>
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        color: "#32cd32",
-                        display: "block",
-                        mb: 1,
-                      }}
-                    >
-                      {formatDate(record.date)}
-                    </Typography>
-                    <Typography
-                      variant="body1"
-                      sx={{
-                        color: "rgba(255, 255, 255, 0.9)",
-                        wordBreak: "break-word",
-                      }}
-                    >
-                      {record.text}
-                    </Typography>
-                  </CardContent>
                 </Card>
               </Grid>
             ))}
@@ -848,6 +822,7 @@ const ManageRecords = () => {
                     sx={{
                       color: "rgba(255, 255, 255, 0.9)",
                       wordBreak: "break-word",
+                      whiteSpace: "pre-line",
                     }}
                   >
                     {previewRecord.text}

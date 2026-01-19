@@ -221,7 +221,7 @@ const MatchRecords = () => {
                         <Box
                           sx={{
                             position: "absolute",
-                            top: 8,
+                            bottom: 8,
                             right: 8,
                             backgroundColor: "rgba(50, 205, 50, 0.8)",
                             color: "white",
@@ -430,6 +430,7 @@ const MatchRecords = () => {
                 sx={{
                   color: "rgba(255, 255, 255, 0.9)",
                   wordBreak: "break-word",
+                  whiteSpace: "pre-line",
                 }}
               >
                 {selectedRecord.text}
