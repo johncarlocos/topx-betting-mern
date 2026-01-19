@@ -27,7 +27,7 @@ services:
     container_name: topx-backend-prod
     working_dir: /app
     volumes:
-      - ./backend:/app/backend:ro
+      - ./backend:/app/backend
       - backend_uploads:/app/backend/uploads
       - backend_logs:/app/backend/logs
     # Build backend dependencies
