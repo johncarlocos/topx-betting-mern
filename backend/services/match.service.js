@@ -47,12 +47,15 @@ class MatchService {
       const cachedMatch = cachedMatchesMap.get(match.frontEndId);
       
       if (cachedMatch?.cachedData) {
-        // Return cached data immediately
+        // Use fullResult if available, otherwise fallback to basic data
+        const fullResult = cachedMatch.cachedData.fullResult;
         return {
           time: match.kickOffTime,
           id: match.frontEndId,
-          homeTeamName: match.homeTeam.name_ch,
-          awayTeamName: match.awayTeam.name_ch,
+          homeTeamName: fullResult?.homeTeamName || match.homeTeam.name_ch,
+          awayTeamName: fullResult?.awayTeamName || match.awayTeam.name_ch,
+          homeTeamLogo: fullResult?.homeTeamLogo || "",
+          awayTeamLogo: fullResult?.awayTeamLogo || "",
           homeWinRate: cachedMatch.cachedData.homeWinRate,
           awayWinRate: cachedMatch.cachedData.awayWinRate,
         };
@@ -60,27 +63,25 @@ class MatchService {
 
       try {
         const resultData = await cachedHandleResult(match.frontEndId);
-        // await Match.findOneAndUpdate(
-        //   { id: match.frontEndId },
-        //   {
-        //     $set: {
-        //       cachedData: {
-        //         homeWinRate: resultData.homeWinRate,
-        //         awayWinRate: resultData.awayWinRate,
-        //         expiresAt: new Date(Date.now() + 3600000) // 1 hour
-        //       }
-        //     }
-        //   },
-        //   { upsert: true, new: true }
-        // );
-
+        
+        // Use full result data if available (includes team logos and all fields)
+        // Handle null win rates (matches without odds available yet)
+        const homeWinRate = resultData?.homeWinRate !== null && resultData?.homeWinRate !== undefined
+          ? resultData.homeWinRate
+          : null;
+        const awayWinRate = resultData?.awayWinRate !== null && resultData?.awayWinRate !== undefined
+          ? resultData.awayWinRate
+          : null;
+        
         return {
           time: match.kickOffTime,
           id: match.frontEndId,
-          homeTeamName: match.homeTeam.name_ch,
-          awayTeamName: match.awayTeam.name_ch,
-          homeWinRate: resultData.homeWinRate,
-          awayWinRate: resultData.awayWinRate,
+          homeTeamName: resultData?.homeTeamName || match.homeTeam.name_ch,
+          awayTeamName: resultData?.awayTeamName || match.awayTeam.name_ch,
+          homeTeamLogo: resultData?.homeTeamLogo || "",
+          awayTeamLogo: resultData?.awayTeamLogo || "",
+          homeWinRate,
+          awayWinRate,
         };
       } catch (error) {
         Logger.error(`Error processing match ${match.frontEndId}:`, error);
@@ -89,8 +90,10 @@ class MatchService {
           id: match.frontEndId,
           homeTeamName: match.homeTeam.name_ch,
           awayTeamName: match.awayTeam.name_ch,
-          homeWinRate: "N/A",
-          awayWinRate: "N/A",
+          homeTeamLogo: "",
+          awayTeamLogo: "",
+          homeWinRate: null,
+          awayWinRate: null,
         };
       }
     }));
@@ -117,7 +120,8 @@ class MatchService {
    * @async
    */
   static async getMatchResult(id) {
-    const resultData = await handleResult(id);
+    // Use cachedHandleResult to get full result including team logos
+    const resultData = await cachedHandleResult(id);
     let match = await Match.findOne({ id: id }).lean();
 
     if (!match) {

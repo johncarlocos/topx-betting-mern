@@ -4,31 +4,88 @@ const { getLogo } = require("./data/api-logo.js");
 
 async function handleResult(id) {
   try {
-    const winRate = await getPredictions(id);
-    const teamLogo = await getLogo(id);
+    // Try to get predictions and logos (these can fail without breaking everything)
+    const winRate = await getPredictions(id).catch(err => {
+      console.log(`[PREDICTIONS] Could not fetch predictions for ${id}:`, err.message);
+      return null;
+    });
+    const teamLogo = await getLogo(id).catch(err => {
+      console.log(`[LOGO] Could not fetch logo for ${id}:`, err.message);
+      return { homeLogo: "", awayLogo: "" };
+    });
 
     const matches = await getHKMatches();
     // console.log("[MATCHES] CACHED MATCHES", matches);
     const hkTeam = matches.find((match) => match.frontEndId === id);
     console.log("[MATCHES] HK TEAM", hkTeam);
-    // return null;
+    
+    if (!hkTeam) {
+      throw new Error(`Match not found for id: ${id}`);
+    }
+    
+    const homeTeamName = hkTeam.homeTeam.name_ch;
+    const awayTeamName = hkTeam.awayTeam.name_ch;
+    
     let homeOdd;
     let awayOdd;
     if (winRate?.homeOdds) {
       homeOdd = winRate.homeOdds;
       awayOdd = winRate.awayOdds;
     } else {
-      if (hkTeam && hkTeam.foPools && hkTeam.foPools[0]) {
-        const combinations = hkTeam.foPools[0].lines[0]?.combinations || [];
-        if (combinations[0]) {
-          homeOdd = combinations[0].currentOdds || homeOdd;
-          awayOdd = combinations[1]?.currentOdds || awayOdd; // If combinations[1] exists
+      // Try to find odds in foPools (HAD pool - Home/Away/Draw)
+      if (hkTeam && hkTeam.foPools && hkTeam.foPools.length > 0) {
+        // Look for HAD pool first
+        const hadPool = hkTeam.foPools.find(pool => pool.oddsType === "HAD");
+        if (hadPool && hadPool.lines && hadPool.lines[0]) {
+          const combinations = hadPool.lines[0].combinations || [];
+          if (combinations[0]) {
+            // HAD pool has 3 combinations: Home, Draw, Away
+            // We only need Home and Away (skip Draw at index 1)
+            homeOdd = combinations[0].currentOdds;
+            awayOdd = combinations[2]?.currentOdds; // Away is at index 2
+          }
+        }
+        
+        // If still no odds, try first pool
+        if ((!homeOdd || !awayOdd) && hkTeam.foPools[0]) {
+          const combinations = hkTeam.foPools[0].lines?.[0]?.combinations || [];
+          if (combinations[0]) {
+            homeOdd = combinations[0].currentOdds || homeOdd;
+            awayOdd = combinations[1]?.currentOdds || awayOdd; // If combinations[1] exists
+          }
         }
       }
     }
-    homeTeamName = hkTeam.homeTeam.name_ch;
-    awayTeamName = hkTeam.awayTeam.name_ch;
+    
+    // Validate that odds are available before calculating win rates
+    if (!homeOdd || !awayOdd || isNaN(homeOdd) || isNaN(awayOdd)) {
+      console.error(`[MATCHES] Missing or invalid odds for match ${id}`, { 
+        homeOdd, 
+        awayOdd, 
+        hasFoPools: hkTeam?.foPools?.length > 0,
+        poolTypes: hkTeam?.foPools?.map(p => p.oddsType) 
+      });
+      
+      // Return partial result with team names and logos (but no win rates)
+      // This allows the match to be displayed even without odds
+      return {
+        homeTeamName,
+        homeTeamLogo: teamLogo?.homeLogo || "",
+        awayTeamName,
+        awayTeamLogo: teamLogo?.awayLogo || "",
+        homeWinRate: null,
+        awayWinRate: null,
+        overRound: null,
+        evHome: null,
+        evAway: null,
+        pbrHome: null,
+        pbrAway: null,
+        kellyHome: null,
+        kellyAway: null,
+      };
+    }
 
+    // Calculate win rates since odds are available
     const homeWinProb = parseFloat((100 / homeOdd).toFixed(1));
     const awayWinProb = parseFloat((100 / awayOdd).toFixed(1));
 

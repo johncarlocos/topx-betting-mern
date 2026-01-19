@@ -17,19 +17,28 @@ async function getLogo(id) {
     const response = await axios.request(options);
     const data = response.data;
 
-    // Check if response data exists and log it
-    if (data.response) {
-      const homeTeamLogo = data.response[0].teams?.home?.logo;
-      const awayTeamLogo = data.response[0].teams?.away?.logo;
+    // Check if response data exists and has the expected structure
+    if (data.response && data.response[0] && data.response[0].teams) {
+      const homeTeamLogo = data.response[0].teams?.home?.logo || "";
+      const awayTeamLogo = data.response[0].teams?.away?.logo || "";
       return {
         homeLogo: homeTeamLogo,
         awayLogo: awayTeamLogo,
-      }
+      };
     } else {
-      console.log("No predictions found.");
+      console.log(`[LOGO] No logo data found for match ${id}`);
+      return {
+        homeLogo: "",
+        awayLogo: "",
+      };
     }
   } catch (error) {
-    console.error("Error fetching predictions:", error.message);
+    console.error(`[LOGO] Error fetching logo for match ${id}:`, error.message);
+    // Return empty logos instead of failing
+    return {
+      homeLogo: "",
+      awayLogo: "",
+    };
   }
 }
 

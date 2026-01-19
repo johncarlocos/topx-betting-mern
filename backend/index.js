@@ -137,6 +137,7 @@ app.use("/admin", adminRoutes);
 app.use("/match", matchRoutes);
 app.use("/member", memberRoutes);
 app.use("/match-record", require("./routes/matchRecord.routes"));
+app.use("/social", require("./routes/social.routes"));
 
 // Debug: Log all incoming requests to API routes (only in development)
 app.use((req, res, next) => {

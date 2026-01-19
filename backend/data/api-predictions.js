@@ -16,20 +16,28 @@ async function getPredictions(id) {
     const response = await axios.request(options);
     const data = response.data;
 
-    // Check if response data exists and log it
-    if (data.response) {
+    // Check if response data exists and has the expected structure
+    if (data.response && data.response[0] && data.response[0].bookmakers) {
       const bet365Bookmarker = data.response[0].bookmakers.find(bookmaker => bookmaker.id === 8);
-      const odds = bet365Bookmarker.bets.find(bet => bet.name === "Home/Away");
-      return {
-        homeOdds: odds.values.find(value => value.value === "Home").odd,
-        awayOdds: odds.values.find(value => value.value === "Away").odd
+      if (bet365Bookmarker && bet365Bookmarker.bets) {
+        const odds = bet365Bookmarker.bets.find(bet => bet.name === "Home/Away");
+        if (odds && odds.values) {
+          const homeOdd = odds.values.find(value => value.value === "Home");
+          const awayOdd = odds.values.find(value => value.value === "Away");
+          if (homeOdd && awayOdd) {
+            return {
+              homeOdds: homeOdd.odd,
+              awayOdds: awayOdd.odd
+            };
+          }
+        }
       }
-    } else {
-      console.log("No predictions found.");
-      return null;
     }
+    console.log(`[PREDICTIONS] No odds found for match ${id}`);
+    return null;
   } catch (error) {
-    console.error("Error fetching predictions:", error.message);
+    console.error(`[PREDICTIONS] Error fetching predictions for match ${id}:`, error.message);
+    return null;
   }
 }
 module.exports = { getPredictions };
