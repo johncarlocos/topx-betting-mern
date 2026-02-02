@@ -54,7 +54,8 @@ class MemberController {
         });
       }
 
-      if (member.blocked && !member.immuneToIPBan) {
+      // Check if member is blocked (only admins can block members now)
+      if (member.blocked) {
         return res.status(403).json({ message: "Member is blocked" });
       }
 
@@ -65,25 +66,13 @@ class MemberController {
         `Login attempt from IP: ${clientIp} for member: ${member.username}`,
       );
 
+      // Track IP addresses (no automatic blocking - only admin can block)
       if (!member.ipAddresses.includes(clientIp)) {
-        if (member.ipAddresses.length >= 6 && !member.immuneToIPBan) {
-          member.blocked = true;
-          await member.save();
-          Logger.warn(
-            `Member ${member.username} blocked due to too many IP addresses`,
-          );
-          return res.status(403).json({
-            message: "Too many IP addresses. Account blocked.",
-            code: "IP_LIMIT_EXCEEDED",
-          }); 
-           
-        } else {
-          member.ipAddresses.push(clientIp);
-          await member.save();
-          Logger.info(
-            `New IP address added for member ${member.username}: ${clientIp}`,
-          );
-        }
+        member.ipAddresses.push(clientIp);
+        await member.save();
+        Logger.info(
+          `New IP address added for member ${member.username}: ${clientIp}`,
+        );
       }
 
       // Generate JWT token

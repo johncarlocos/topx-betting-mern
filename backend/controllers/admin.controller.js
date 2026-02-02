@@ -522,7 +522,8 @@ class AdminController {
         return res.status(404).json({ message: "Member not found" });
       }
       
-      // Check if the member was blocked due to too many IPs
+      // Optionally clear IP addresses when unblocking (optional cleanup)
+      // Note: Automatic IP-based blocking has been removed, but IP tracking remains
       if (updatedMember.ipAddresses.length >= 6) {
         updatedMember.ipAddresses = [];
         await updatedMember.save();
