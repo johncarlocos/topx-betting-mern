@@ -27,12 +27,17 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // Handle token expiration
-    if (error.response?.status === 401 && error.response?.data?.message === "Token expired") {
-      // Token expired, clear it and logout
-      localStorage.removeItem("token");
-      const logout = useAuthStore.getState().logout;
-      logout();
+    // Handle token expiration - only logout on explicit token expiration
+    if (error.response?.status === 401) {
+      const message = error.response?.data?.message || "";
+      // Only logout on token expiration or invalid token, not on other 401 errors
+      if (message === "Token expired" || message === "Invalid token" || message === "No token provided") {
+        // Token expired or invalid, clear it and logout
+        localStorage.removeItem("token");
+        const logout = useAuthStore.getState().logout;
+        logout();
+      }
+      // For other 401 errors (like invalid credentials during login), don't auto-logout
     }
     // Handle 403 Forbidden errors (common when role doesn't match)
     if (error.response?.status === 403) {

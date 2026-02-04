@@ -75,23 +75,49 @@ const AdminLayout = ({ children }) => {
         }
       } catch (error) {
         console.error("Admin auth check failed:", error, error.response?.status);
-        // Token invalid or expired, clear it and redirect
-        localStorage.removeItem("token");
-        logout();
-        const currentPath = location.pathname;
-        if (currentPath.startsWith("/admin") || currentPath.startsWith("/subadmin")) {
-          if (currentPath.startsWith("/admin")) {
-            navigate("/admin/login", { replace: true });
-          } else {
-            navigate("/subadmin/login", { replace: true });
+        const status = error.response?.status;
+        const message = error.response?.data?.message || "";
+        
+        // Only logout on actual authentication failures, not network errors
+        if (status === 401 && (message === "Token expired" || message === "Invalid token" || message === "No token provided")) {
+          // Token invalid or expired, clear it and redirect
+          localStorage.removeItem("token");
+          logout();
+          const currentPath = location.pathname;
+          if (currentPath.startsWith("/admin") || currentPath.startsWith("/subadmin")) {
+            if (currentPath.startsWith("/admin")) {
+              navigate("/admin/login", { replace: true });
+            } else {
+              navigate("/subadmin/login", { replace: true });
+            }
           }
+        } else if (status === 404 && message === "Admin not found") {
+          // Admin account deleted, logout
+          localStorage.removeItem("token");
+          logout();
+          const currentPath = location.pathname;
+          if (currentPath.startsWith("/admin") || currentPath.startsWith("/subadmin")) {
+            if (currentPath.startsWith("/admin")) {
+              navigate("/admin/login", { replace: true });
+            } else {
+              navigate("/subadmin/login", { replace: true });
+            }
+          }
+        } else if (!error.response) {
+          // Network error - don't logout, just log and continue
+          console.warn("Network error during auth check, keeping session");
+        } else {
+          // Other errors - don't logout automatically
+          console.warn("Auth check error (non-critical):", error.response?.status, message);
         }
         setIsCheckingAuth(false);
       }
     };
 
     // Only check auth if not on login page
-    if (!location.pathname.includes("/login")) {
+    // Check on mount and when pathname changes to admin routes (not on every pathname change)
+    if (!location.pathname.includes("/login") && 
+        (location.pathname.startsWith("/admin") || location.pathname.startsWith("/subadmin"))) {
       checkAuth();
     } else {
       setIsCheckingAuth(false);

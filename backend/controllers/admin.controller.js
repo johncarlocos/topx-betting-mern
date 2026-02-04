@@ -67,7 +67,7 @@ class AdminController {
           username: admin.username
         },
         process.env.JWT_SECRET || "your-secret-key-change-in-production",
-        { expiresIn: "24h" }
+        { expiresIn: "7d" }
       );
 
       res.status(200).json({
