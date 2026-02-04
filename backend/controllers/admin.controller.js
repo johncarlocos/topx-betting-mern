@@ -279,9 +279,12 @@ class AdminController {
     try {
       const isAdmin = req.admin.role === "main";
       let query = {};
+      // Main admin sees ALL members (including blocked ones created by sub-admins)
+      // Sub-admin only sees members they created
       if (!isAdmin) {
         query = { createdBy: req.admin._id };
       }
+      // Note: Query does NOT filter by blocked status - blocked members are visible to admins
 
       // Pagination parameters
       const page = parseInt(req.query.page) || 1;
