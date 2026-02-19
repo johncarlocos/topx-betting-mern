@@ -18,7 +18,8 @@ sleep 2
 
 # Renew certificate using standalone mode
 echo "Renewing certificate..."
-certbot renew --standalone --preferred-challenges http -d topxhk.ai -d www.topxhk.ai --force-renewal
+# Use certonly with force-renewal to renew existing certificate
+sudo certbot certonly --standalone --preferred-challenges http -d topxhk.ai -d www.topxhk.ai --force-renewal --non-interactive --agree-tos
 
 # Restart nginx container
 echo "Restarting nginx container..."
